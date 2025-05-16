@@ -17,19 +17,19 @@ const ChatMessageDisplay: React.FC<ChatMessageDisplayProps> = ({ message }) => {
     <div className={`w-full flex ${isUser ? 'justify-end' : 'justify-start'} py-2 px-4 items-start`}>
       {!isUser && (
         <div className="mr-2">
-          {isModel && 
-          <span className="text-indigo-500 text-xs">
-            {/* <Image src="/icons/robot.png" alt="Robot" width={24} height={24} className="w-6 h-6" priority /> */}
-            <BotIcon width={50} height={50} className="w-9 h-9" />
-          </span>}
+          {isModel &&
+            <span className="text-indigo-500 text-xs">
+              {/* <Image src="/icons/robot.png" alt="Robot" width={24} height={24} className="w-6 h-6" priority /> */}
+              <BotIcon width={50} height={50} className="w-9 h-9" />
+            </span>}
         </div>
       )}
       <div
         className={`max-w-[80%] rounded-lg whitespace-pre-wrap break-words shadow-sm ${isUser
-            ? 'bg-indigo-100 text-gray-800'
-            : isSystem
-              ? 'text-sm text-gray-600 italic'
-              : 'bg-white text-gray-900 border border-gray-200'
+          ? 'bg-indigo-100 text-gray-800'
+          : isSystem
+            ? 'text-sm text-gray-600 italic'
+            : 'bg-white text-gray-900 border border-gray-200'
           } p-3`}
       >
         {message.text}
