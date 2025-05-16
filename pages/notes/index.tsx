@@ -1,0 +1,19 @@
+import Head from 'next/head'
+import React from 'react'
+
+const notes = () => {
+  return (
+    <div>
+        <Head>
+            <title>Smarter PMS | Notes</title>
+            <meta name="description" content="Notes" />
+            <link rel="icon" href="/favicon.ico" />
+        </Head>
+        <main>
+            
+        </main>
+    </div>
+  )
+}
+
+export default notes
