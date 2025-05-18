@@ -13,6 +13,7 @@ import {
     Wallet
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import React from 'react';
 
 interface SidebarProps {
@@ -34,14 +35,19 @@ const SidebarItem = ({
     collapsed?: boolean;
     notification?: number | null;
 }) => {
+    // make active sidebar 
+    const [isActive, setIsActive] = React.useState(active);
+    React.useEffect(() => {
+        setIsActive(active);
+    }, [active]);
     return (
         <div
-            className={`flex items-center px-3 py-2 rounded-md text-sm font-medium cursor-pointer ${active
+            className={`flex items-center px-3 py-2 rounded-md text-sm font-medium cursor-pointer ${isActive
                 ? 'bg-purple-50 text-purple-600'
                 : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                 } ${collapsed ? 'justify-center' : 'justify-start'}`}
         >
-            <div className={`${active ? 'text-purple-600' : 'text-gray-500'}`}>
+            <div className={`${isActive ? 'text-purple-600' : 'text-gray-500'}`}>
                 {icon}
             </div>
 
@@ -63,6 +69,9 @@ const SidebarItem = ({
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
+    const router = useRouter();
+    const currentPath = router.pathname;
+
     return (
         <div className={`bg-white border-r border-gray-200 transition-all duration-300 h-screen ${isOpen ? 'w-64' : 'w-20'} flex flex-col fixed left-0 top-0 z-10`}>
             {/* Sidebar header */}
@@ -91,22 +100,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                 <div className="space-y-1 px-3">
                     {/* Menu items */}
                     <Link href={Path.TRIP}>
-                        <SidebarItem icon={<Wallet size={20} />} text="Trips" active={true} collapsed={!isOpen} />
+                        <SidebarItem icon={<Wallet size={20} />} text="Trips" active={currentPath === Path.TRIP} collapsed={!isOpen} />
                     </Link>
                     <Link href={Path.PLAN}>
-                        <SidebarItem icon={<Plane size={20} />} text="Planning" collapsed={!isOpen} />
+                        <SidebarItem icon={<Plane size={20} />} text="Planning" active={currentPath === Path.PLAN} collapsed={!isOpen} />
                     </Link>
                     <Link href={Path.NOTES}>
-                        <SidebarItem icon={<Notebook size={20} />} text="Notes" collapsed={!isOpen} />
+                        <SidebarItem icon={<Notebook size={20} />} text="Notes" active={currentPath === Path.NOTES} collapsed={!isOpen} />
                     </Link>
                     <Link href={Path.REMINDER}>
-                        <SidebarItem icon={<AlertCircle size={20} />} text="Reminder" collapsed={!isOpen} />
+                        <SidebarItem icon={<AlertCircle size={20} />} text="Reminder" active={currentPath === Path.REMINDER} collapsed={!isOpen} />
                     </Link>
                     <Link href={Path.TODO}>
-                        <SidebarItem icon={<ListTodo size={20} />} text="Todos" collapsed={!isOpen} />
+                        <SidebarItem icon={<ListTodo size={20} />} text="Todos" active={currentPath === Path.TODO} collapsed={!isOpen} />
                     </Link>
                     <Link href={Path.CHAT}>
-                        <SidebarItem icon={<MessageCircle size={20} />} text="Chat" collapsed={!isOpen} />
+                        <SidebarItem icon={<MessageCircle size={20} />} text="Chat AI" active={currentPath === Path.CHAT} collapsed={!isOpen} />
                     </Link>
 
                     {isOpen && <div className="mt-6 mb-3 px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Favorites</div>}

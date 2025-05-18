@@ -8,3 +8,10 @@ export enum Path {
     CALENDAR = "/calendar",
     
 }
+
+export enum ConfirmationType {
+    DELETE = 'DELETE',
+    UPDATE = 'UPDATE',
+    CREATE = 'CREATE',
+    REMOVE = 'REMOVE',
+}
