@@ -11,7 +11,7 @@ function RootLayout({ children }: RootLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
     return (
-        <div className="w-full flex flex-col min-h-screen">
+        <div className="w-full flex flex-col min-h-screen overflow-hidden">
             {/* Sidebar */}
             <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
@@ -27,7 +27,7 @@ function RootLayout({ children }: RootLayoutProps) {
                 <NavBar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
                 {/* Page content */}
-                <main className="flex-grow p-6 bg-gray-50">
+                <main className="flex-grow p-6 bg-gray-50 ">
                     {children}
                 </main>
             </div>

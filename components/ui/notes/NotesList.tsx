@@ -4,7 +4,6 @@ import { dateFormat } from '@/utils/dateformat';
 import { ConfirmationType } from '@/utils/enum';
 import { Delete, DeleteIcon, Plus, Save, Trash, Trash2 } from 'lucide-react';
 import React from 'react'
-import { toast } from 'react-toastify';
 
 const notes_data = [
   {
@@ -87,7 +86,7 @@ const NotesList = () => {
 
   return (
     <div className="bg-gray-50 h-100 scroll-auto">
-      <div className="max-w-6xl mx-auto py-8">
+      <div className="mx-auto ">
         <div className="mb-6 bg-[#e7edff] h-[130px] p-3 rounded-xl flex flex-col justify-between relative shadow">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Notes</h1>

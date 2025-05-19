@@ -18,7 +18,7 @@ const NavBar: React.FC<NavBarProps> = ({ toggleSidebar }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     return (
-        <nav className="bg-white border-b border-gray-200 h-16 px-4 flex items-center justify-between">
+        <nav className="bg-white border-b border-gray-200 h-16 px-4 flex items-center justify-between overflow-hidden">
             {/* Left section - Menu and search */}
             <div className="flex items-center">
                 {/* Menu button */}
