@@ -6,6 +6,7 @@ export enum Path {
     TODO = "/todos",
     CHAT = "/chat-ai",
     CALENDAR = "/calendar",
+    LOGIN = "/login",
     
 }
 

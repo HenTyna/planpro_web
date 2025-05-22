@@ -9,6 +9,7 @@ import {
     MessageCircle,
     Notebook,
     Plane,
+    Sparkles,
     Star,
     Wallet
 } from 'lucide-react';
@@ -78,19 +79,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             <div className={`h-16 flex items-center px-4 border-b border-gray-200 ${isOpen ? 'justify-start' : 'justify-center'}`}>
                 {isOpen && (
                     <>
-                        <div className="h-8 w-8 bg-purple-600 rounded-md flex items-center justify-center mr-2">
-                            <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="3">
-                                <path d="M4 8h16M4 16h8" />
-                            </svg>
-                        </div>
-                        <span className="font-bold text-xl text-gray-800">Smarter PMS</span>
+                        <Sparkles className="h-8 w-8 text-blue-500" />
+                        <span className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-teal-400 bg-clip-text text-transparent">
+                            PlanPro
+                        </span>
                     </>
                 )}
                 {!isOpen && (
-                    <div className="h-8 w-8 bg-purple-600 rounded-md flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="3">
-                            <path d="M4 8h16M4 16h8" />
-                        </svg>
+                    <div className="h-8 w-8 rounded-md flex items-center justify-center">
+                        <Sparkles className="h-8 w-8 text-blue-500" />
                     </div>
                 )}
             </div>
