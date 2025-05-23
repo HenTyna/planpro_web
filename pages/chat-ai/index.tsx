@@ -6,7 +6,7 @@ const chatai = () => {
   return (
     <div>
       <Head>
-        <title>Smarter PMS | Chat AI</title>
+        <title>PlanPro | Chat AI</title>
         <meta name="description" content="Chat AI page" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

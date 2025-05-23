@@ -4,7 +4,7 @@ function LandingLayout({ children }: { children: React.ReactNode }) {
     return (
         <>
             <Head>
-                <title>Smarter PSM | Home</title>
+                <title>PlanPro | Home</title>
                 <link href="favicon.png" rel="shortcut icon" type="image/png" />
             </Head>
             <div >

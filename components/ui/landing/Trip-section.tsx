@@ -5,6 +5,7 @@ import Image from "next/image"
 import { motion, useInView } from "framer-motion"
 import { Map, PlaneLanding, Calendar, Navigation } from "lucide-react"
 import { Button } from "@/components/shared/ui/Button"
+import landscape from "@/public/asset/landscap.jpg"
 
 export default function TripSection() {
   const ref = useRef(null)
@@ -35,7 +36,7 @@ export default function TripSection() {
               <div className="relative bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
                 <div className="h-64 relative">
                   <Image
-                    src="/placeholder.svg?height=400&width=600"
+                    src={landscape}
                     alt="Map View"
                     width={600}
                     height={400}

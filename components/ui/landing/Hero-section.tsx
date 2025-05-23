@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { Button } from "@/components/shared/ui/Button"
-
+import PlanProPic from "@/public/asset/landingPic1.jpg"
 export default function HeroSection() {
   const [mounted, setMounted] = useState(false)
 
@@ -74,7 +74,7 @@ export default function HeroSection() {
           <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-blue-500 to-teal-400 opacity-30 blur-xl"></div>
           <div className="relative bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
             <Image
-              src="/placeholder.svg?height=600&width=800"
+              src={PlanProPic}
               alt="PlanPro Dashboard"
               width={800}
               height={600}

@@ -5,6 +5,9 @@ import Image from "next/image"
 import { motion, useInView } from "framer-motion"
 import { CheckSquare, Clock, MoreHorizontal, Plus } from "lucide-react"
 import { Button } from "@/components/shared/ui/Button"
+import todos from "@/public/asset/todo.jpg"
+import progress from "@/public/asset/progress.jpg"
+import done from "@/public/asset/done.jpg"
 
 const kanbanColumns = [
   {
@@ -15,7 +18,7 @@ const kanbanColumns = [
         title: "Research competitors",
         tags: ["Marketing", "Research"],
         dueDate: "Jun 15",
-        image: true,
+        image: todos,
       },
       {
         title: "Update documentation",
@@ -32,7 +35,7 @@ const kanbanColumns = [
         title: "Design new landing page",
         tags: ["Design", "Website"],
         dueDate: "Jun 14",
-        image: true,
+        image: progress,
       },
     ],
   },
@@ -44,6 +47,7 @@ const kanbanColumns = [
         title: "Fix navigation bug",
         tags: ["Development", "Bug"],
         dueDate: "Jun 10",
+        image: done,
       },
     ],
   },
@@ -128,11 +132,11 @@ export default function KanbanSection() {
                           {card.image && (
                             <div className="mb-2 rounded-md overflow-hidden">
                               <Image
-                                src="/placeholder.svg?height=80&width=220"
+                                src={card.image}
                                 alt="Task attachment"
                                 width={220}
                                 height={80}
-                                className="w-full h-20 object-cover"
+                                className="w-full h-30 object-cover"
                               />
                             </div>
                           )}

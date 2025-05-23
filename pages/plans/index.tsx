@@ -6,7 +6,7 @@ const index = () => {
     return (
         <div>
             <Head>
-                <title>Smarter PMS | Plans</title>
+                <title>PlanPro | Plans</title>
                 <meta name="description" content="Plans" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>

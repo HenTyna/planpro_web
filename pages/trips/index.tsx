@@ -6,7 +6,7 @@ const trips = () => {
   return (
     <div>
       <Head>
-        <title>Smarter PMS | Trips</title>
+        <title>PlanPro | Trips</title>
       </Head>
       <main>
         <TripsContrainer />

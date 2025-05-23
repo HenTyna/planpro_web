@@ -6,7 +6,7 @@ const notes = () => {
   return (
     <div>
         <Head>
-            <title>Smarter PMS | Notes</title>
+            <title>PlanPro | Notes</title>
             <meta name="description" content="Notes" />
             <link rel="icon" href="/favicon.ico" />
         </Head>

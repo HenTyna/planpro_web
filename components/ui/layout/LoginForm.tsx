@@ -1,96 +1,244 @@
-import React from 'react'
-import { Eye, EyeOff, User, Mail } from 'lucide-react';
-import Link from 'next/link';
-const LoginForm = () => {
-    const [showPassword, setShowPassword] = React.useState(false);
+"use client"
+
+import type React from "react"
+
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight, Github, Twitter } from "lucide-react"
+import { Input } from "@/components/shared/ui/Input"
+import { Button } from "@/components/shared/ui/Button"
+
+export default function LoginPage() {
+    const [showPassword, setShowPassword] = useState(false)
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState("")
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setError("")
+
+        if (!email || !password) {
+            setError("Please fill in all fields")
+            return
+        }
+
+        try {
+            setIsLoading(true)
+            // Simulate API call
+            await new Promise((resolve) => setTimeout(resolve, 1500))
+            // In a real app, you would handle authentication here
+            console.log("Login attempt with:", { email, password })
+            // Redirect to dashboard or home page after successful login
+            window.location.href = "/trips"
+        } catch (err) {
+            setError("Invalid email or password")
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    if (!mounted) return null
 
     return (
-        <div className="min-h-screen flex">
-            {/* Left side - Form */}
-            <div className="w-full lg:w-1/2 bg-white p-8 lg:p-12 flex flex-col">
-                <div className="flex-grow flex flex-col justify-center max-w-md mx-auto w-full">
-                    <div className="mb-8">
-                        <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">
-                            Login to your account <span className="text-blue-500">.</span></h1>
-                    </div>
+        <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-teal-50">
+            {/* Decorative elements */}
+            <div className="fixed top-0 left-0 w-64 h-64 bg-blue-500 rounded-full opacity-10 -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+            <div className="fixed top-1/3 right-0 w-96 h-96 bg-teal-400 rounded-full opacity-10 translate-x-1/2 blur-3xl"></div>
+            <div className="fixed bottom-0 left-1/3 w-80 h-80 bg-yellow-400 rounded-full opacity-10 translate-y-1/2 blur-3xl"></div>
 
-                    <div className="space-y-4">
-                        {/* Email field */}
-                        <div>
-                            <label className="text-xs text-gray-500 mb-1 block">Email</label>
-                            <div className="relative">
-                                <input
-                                    type="email"
-                                    value="michal.masiak@anywhere.co"
-                                    className="w-full p-3 bg-gray-50 rounded-lg pr-10"
-                                />
-                                <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                                    <Mail size={18} />
-                                </button>
+            <header className="container mx-auto px-4 py-6 relative z-10">
+                <Link href="/" className="flex items-center gap-2 group">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-blue-500 rounded-full blur-sm opacity-50 group-hover:opacity-70 transition-opacity"></div>
+                        <Sparkles className="h-6 w-6 text-blue-500 relative z-10" />
+                    </div>
+                    <span className="text-xl font-bold bg-gradient-to-r from-blue-500 to-teal-400 bg-clip-text text-transparent">
+                        PlanPro
+                    </span>
+                </Link>
+            </header>
+
+            <main className="flex-1 flex items-center justify-center p-4 relative z-10">
+                <div className="w-full max-w-md">
+                    <div className="relative">
+                        {/* Card glow effect */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-teal-400 to-yellow-400 rounded-2xl opacity-50 blur-lg"></div>
+
+                        <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-8 border border-white relative z-10">
+                            <div className="text-center mb-8">
+                                <div className="flex justify-center mb-4">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-teal-400 animate-pulse blur-md"></div>
+                                        <div className="relative bg-white rounded-full p-3">
+                                            <Sparkles className="h-8 w-8 text-blue-500" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-500 to-teal-400 bg-clip-text text-transparent">
+                                    Welcome back
+                                </h1>
+                                <p className="text-gray-600">Log in to your PlanPro account</p>
+                            </div>
+
+                            {error && (
+                                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm flex items-start">
+                                    <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
+                                        <span className="text-red-600 text-xs">!</span>
+                                    </div>
+                                    <p>{error}</p>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                                        Email
+                                    </label>
+                                    <div className="relative group">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-teal-400 rounded-md opacity-30 blur-sm group-hover:opacity-40 transition-opacity"></div>
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                            <Mail className="h-5 w-5 text-blue-500" />
+                                        </div>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            placeholder="you@example.com"
+                                            className="pl-10 border-transparent bg-white relative z-10"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                                            Password
+                                        </label>
+                                        <Link
+                                            href="/forgot-password"
+                                            className="text-sm text-blue-500 hover:text-blue-600 transition-colors hover:underline"
+                                        >
+                                            Forgot password?
+                                        </Link>
+                                    </div>
+                                    <div className="relative group">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-teal-400 rounded-md opacity-30 blur-sm group-hover:opacity-40 transition-opacity"></div>
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                            <Lock className="h-5 w-5 text-blue-500" />
+                                        </div>
+                                        <Input
+                                            id="password"
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="••••••••"
+                                            className="pl-10 pr-10 border-transparent bg-white relative z-10"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center z-10"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                                            ) : (
+                                                <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="pt-2">
+                                    <Button type="submit" className="w-full relative group overflow-hidden" disabled={isLoading}>
+                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-teal-400 to-blue-500 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:via-teal-500 group-hover:to-blue-600 transition-all duration-300"></div>
+                                        <span className="relative z-10 flex items-center justify-center text-white">
+                                            {isLoading ? (
+                                                <>
+                                                    <svg
+                                                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <circle
+                                                            className="opacity-25"
+                                                            cx="12"
+                                                            cy="12"
+                                                            r="10"
+                                                            stroke="currentColor"
+                                                            strokeWidth="4"
+                                                        ></circle>
+                                                        <path
+                                                            className="opacity-75"
+                                                            fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                        ></path>
+                                                    </svg>
+                                                    Logging in...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Log in <ArrowRight className="ml-2 h-4 w-4" />
+                                                </>
+                                            )}
+                                        </span>
+                                    </Button>
+                                </div>
+                            </form>
+
+                            <div className="mt-8">
+                                <div className="relative">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <div className="w-full border-t border-gray-200"></div>
+                                    </div>
+                                    <div className="relative flex justify-center text-sm">
+                                        <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 grid grid-cols-2 gap-3">
+                                    <button type="button" className="w-full relative group overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900 group-hover:from-gray-900 group-hover:to-black transition-all duration-300"></div>
+                                        <span className="relative z-10 flex items-center justify-center text-white">
+                                            <Github className="mr-2 h-4 w-4" />
+                                            GitHub
+                                        </span>
+                                    </button>
+                                    <Button type="button" className="w-full relative group overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-500 group-hover:from-blue-500 group-hover:to-blue-600 transition-all duration-300"></div>
+                                        <span className="relative z-10 flex items-center justify-center text-white">
+                                            <Twitter className="mr-2 h-4 w-4" />
+                                            Twitter
+                                        </span>
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 text-center">
+                                <p className="text-sm text-gray-600">
+                                    Don't have an account?{" "}
+                                    <Link
+                                        href="/register"
+                                        className="font-medium text-blue-500 hover:text-blue-600 transition-colors hover:underline"
+                                    >
+                                        Sign up
+                                    </Link>
+                                </p>
                             </div>
                         </div>
-
-                        {/* Password field */}
-                        <div>
-                            <label className="text-xs text-gray-500 mb-1 block">Password</label>
-                            <div className="relative">
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    // value="•••••••"
-                                    className="w-full p-3 border border-blue-500 rounded-lg pr-10"
-                                />
-                                <button
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                                >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Buttons */}
-                        <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-8">
-                            <button className="py-3 px-6 rounded-full bg-gray-100 text-gray-600 font-medium">
-                                Change method
-                            </button>
-
-                            {/* <button className="py-3 px-6 rounded-full bg-blue-500 text-white font-medium flex-1"> */}
-                                <Link className='py-3 px-6 rounded-full bg-blue-500 text-white font-medium flex-1 text-center' href={{
-                                    pathname: '/plans',
-                                }}>
-                                    Login
-                                </Link>
-                            {/* </button> */}
-                        </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Right side - Image */}
-            <div className="hidden lg:block lg:w-1/2 relative">
-                <img
-                    src=""
-                    alt="Mountain lake"
-                    className="w-full h-full object-cover"
-                />
-
-                {/* Decorative elements */}
-                <div className="absolute inset-0 overflow-hidden">
-                    <svg
-                        className="absolute left-0 top-0 h-full text-white opacity-20"
-                        viewBox="0 0 100 800"
-                        preserveAspectRatio="none"
-                    >
-                        <path d="M0,0 C30,100 10,300 50,400 C70,500 0,600 0,800" stroke="currentColor" strokeWidth="2" fill="none" strokeDasharray="5,5" />
-                    </svg>
-                </div>
-
-                <div className="absolute bottom-6 right-6 text-white font-bold text-4xl">
-                    .AW
-                </div>
-            </div>
-        </div >
-    );
-};
-
-export default LoginForm
+            </main>
+        </div>
+    )
+}

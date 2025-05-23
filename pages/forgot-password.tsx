@@ -1,23 +1,23 @@
-import LoginForm from '@/components/ui/layout/LoginForm'
+import ForgotPasswordPage from '@/components/ui/layout/ForgotPassword'
 import Head from 'next/head'
 import React from 'react'
 
-const Login = () => {
+const ForgotPassword = () => {
   return (
     <>
         <div>
             <Head>
-                <title>PlanPro | Login</title>
+                <title>PlanPro | Forgot Password</title>
                 <meta name="description" content="Login to your account" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main>
-                <LoginForm />
+                <ForgotPasswordPage />
             </main>
         </div>
     </>
   )
 }
 
-export default Login;
-Login.getLayout = (page: any) => page;
+export default ForgotPassword
+ForgotPassword.getLayout = (page: any) => page;
