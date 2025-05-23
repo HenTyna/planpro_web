@@ -1,41 +1,63 @@
 // components/ChatMessageDisplay.tsx
-import { ChatMessage } from '@/types/chat';
-import { Bot, BotIcon } from 'lucide-react';
-import Image from 'next/image';
-import React from 'react';
+import type { ChatMessage } from "@/types/chat"
+import { BotIcon, Sparkles } from "lucide-react"
+import type React from "react"
 
 interface ChatMessageDisplayProps {
-  message: ChatMessage;
+  message: ChatMessage
+  currentTheme: {
+    color: string
+    ring: string
+    name: string
+    gradient: string
+  }
 }
 
-const ChatMessageDisplay: React.FC<ChatMessageDisplayProps> = ({ message }) => {
-  const isUser = message.role === 'user';
-  const isSystem = message.role === 'system';
-  const isModel = message.role === 'model';
+const ChatMessageDisplay: React.FC<ChatMessageDisplayProps> = ({ message, currentTheme }) => {
+  const isUser = message.role === "user"
+  const isSystem = message.role === "system"
+  const isModel = message.role === "model"
 
   return (
-    <div className={`w-full flex ${isUser ? 'justify-end' : 'justify-start'} py-2 px-4 items-start`}>
+    <div className={`w-full flex ${isUser ? "justify-end" : "justify-start"} py-3 px-4 items-start animate-fadeIn`}>
       {!isUser && (
-        <div className="mr-2">
-          {isModel &&
-            <span className="text-indigo-500 text-xs">
-              {/* <Image src="/icons/robot.png" alt="Robot" width={24} height={24} className="w-6 h-6" priority /> */}
-              <BotIcon width={50} height={50} className="w-9 h-9" />
-            </span>}
+        <div className="mr-3 flex-shrink-0">
+          {isModel ? (
+            <div className={`bg-gradient-to-br ${currentTheme.gradient} p-2 rounded-full shadow-lg`}>
+              <BotIcon width={24} height={24} className="text-white" />
+            </div>
+          ) : (
+            <div className="bg-gradient-to-br from-yellow-400 to-orange-500 p-2 rounded-full shadow-lg">
+              <Sparkles width={24} height={24} className="text-white" />
+            </div>
+          )}
         </div>
       )}
       <div
-        className={`max-w-[80%] rounded-lg whitespace-pre-wrap break-words shadow-sm ${isUser
-          ? 'bg-indigo-100 text-gray-800'
-          : isSystem
-            ? 'text-sm text-gray-600 italic'
-            : 'bg-white text-gray-900 border border-gray-200'
-          } p-3`}
+        className={`max-w-[80%] rounded-2xl whitespace-pre-wrap break-words shadow-md transition-all duration-300 ${
+          isUser
+            ? `bg-gradient-to-r ${currentTheme.gradient} text-white rounded-tr-none`
+            : isSystem
+              ? "bg-gradient-to-r from-gray-200 to-gray-100 text-gray-700 italic rounded-tl-none"
+              : "bg-white text-gray-800 border border-gray-100 rounded-tl-none"
+        } p-4`}
       >
         {message.text}
       </div>
+      {isUser && (
+        <div className="ml-3 flex-shrink-0">
+          <div className="bg-gradient-to-br from-gray-700 to-gray-900 p-2 rounded-full shadow-lg">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"
+                fill="white"
+              />
+            </svg>
+          </div>
+        </div>
+      )}
     </div>
-  );
-};
+  )
+}
 
-export default ChatMessageDisplay;
+export default ChatMessageDisplay

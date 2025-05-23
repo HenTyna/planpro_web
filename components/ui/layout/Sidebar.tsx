@@ -5,6 +5,7 @@ import {
     AlertCircle,
     Calendar,
     Calendar1,
+    ChartAreaIcon,
     ChevronLeft,
     ChevronRight,
     HelpCircle,
@@ -260,6 +261,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                             icon={<MessageCircle size={20} />}
                             text="Chat AI"
                             active={currentPath === Path.CHAT}
+                            collapsed={!isOpen}
+                            color="purple"
+                        />
+                    </Link>
+
+                    <Link href={Path.TELEGRAM}>
+                        <SidebarItem
+                            icon={<ChartAreaIcon size={20} />}
+                            text="Telegram"
+                            active={currentPath === Path.TELEGRAM}
                             collapsed={!isOpen}
                             color="purple"
                         />

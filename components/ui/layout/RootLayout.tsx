@@ -17,7 +17,7 @@ function RootLayout({ children }: RootLayoutProps) {
 
             {/* Main content area with navbar and children */}
             <div
-                className="flex flex-col min-h-screen transition-all duration-300"
+                className="flex flex-col transition-all duration-300 overflow-hidden"
                 style={{
                     marginLeft: sidebarOpen ? '16rem' : '5rem',
                     background: "white"

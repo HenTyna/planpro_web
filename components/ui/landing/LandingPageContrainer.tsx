@@ -41,10 +41,12 @@ export default function LandingPage() {
           </Link>
         </nav>
         <div className="flex items-center gap-4">
-          <Button variant="outline" className="hidden sm:inline-flex">
-            Log in
-          </Button>
           <Link href={Path.LOGIN}>
+            <Button variant="outline" className="hidden sm:inline-flex">
+              Log in
+            </Button>
+          </Link>
+          <Link href={Path.REGISTER}>
             <Button className="bg-blue-500 hover:bg-blue-600">Get Started</Button>
           </Link>
         </div>

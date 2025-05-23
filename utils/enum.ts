@@ -7,6 +7,8 @@ export enum Path {
     CHAT = "/chat-ai",
     CALENDAR = "/calendar",
     LOGIN = "/login",
+    REGISTER = "/register",
+    TELEGRAM = "/telegram",
     
 }
 

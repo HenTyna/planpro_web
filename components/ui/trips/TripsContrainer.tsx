@@ -21,7 +21,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/shared/ui/Button"
 import { Input } from "@/components/shared/ui/Input"
-
+import tripImg from "@/public/asset/trip-img2.png"
 // Sample trip data
 const tripCategories = [
   { id: 1, name: "Business", color: "bg-blue-400", icon: Wallet },
@@ -197,7 +197,7 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
         >
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 text-white/80 hover:text-white p-1 rounded-full hover:bg-white/20"
+            className="absolute right-2 top-2 text-white/80 hover:text-white p-1 rounded-full hover:bg-white/20"
           >
             <X className="h-5 w-5" />
           </button>
@@ -246,7 +246,7 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
           )}
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-300px)] custom-scrollbar">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-350px)] custom-scrollbar">
           <div className="space-y-6">
             {/* Description */}
             <div>
@@ -1024,8 +1024,8 @@ const TripPage = () => {
                 </div>
               </div>
             </div>
-            <div className="absolute right-6 top-1/2 transform -translate-y-1/2 opacity-20">
-              <Image src="/asset/travel.png" alt="Travel illustration" width={120} height={120} />
+            <div className="absolute right-6 top-1/2 transform -translate-y-1/2">
+              <Image src={tripImg} alt="Travel illustration" width={120} height={120} />
             </div>
           </div>
         </div>
