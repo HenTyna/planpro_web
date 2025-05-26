@@ -1060,7 +1060,7 @@ export default function ReminderPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50 max-h-screen overflow-auto">
       {/* Header */}
       <div className="bg-white border-b">
         <div className="relative">

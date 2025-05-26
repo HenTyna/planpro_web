@@ -11,20 +11,29 @@ function RootLayout({ children }: RootLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
     return (
-        <div className="w-full flex flex-col min-h-screen overflow-hidden">
+        <div className="w-full flex flex-col min-h-screen max-h-screen overflow-y-auto">
             {/* Sidebar */}
             <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
             {/* Main content area with navbar and children */}
             <div
-                className="flex flex-col transition-all duration-300 overflow-hidden"
+                className="flex flex-col transition-all duration-300 "
                 style={{
                     marginLeft: sidebarOpen ? '16rem' : '5rem',
                     background: "white"
                 }}
             >
                 {/* Navbar */}
-                <NavBar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+                <NavBar 
+                    toggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
+                    isDarkMode={false} 
+                    currentTheme={{
+                        color: '',
+                        ring: '',
+                        name: '',
+                        gradient: ''
+                    }}
+                />
 
                 {/* Page content */}
                 <main className="flex-grow p-6 bg-gray-50 ">

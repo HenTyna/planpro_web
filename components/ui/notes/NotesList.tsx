@@ -305,7 +305,7 @@ const NotesList = () => {
   if (!mounted) return null
 
   return (
-    <div className="bg-gray-50 custom-scrollbar">
+    <div className="bg-gray-50 custom-scrollbar overflow-auto">
       <div className=" mx-auto p-4">
         {/* Header Section */}
         <div className="mb-6 relative overflow-hidden">

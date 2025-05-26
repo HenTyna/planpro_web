@@ -188,10 +188,10 @@ function GeminiChat() {
 
   // Replace the return JSX with this updated version
   return (
-    <div className="flex h-screen w-full overflow-auto">
+    <div className="flex w-full overflow-auto h-[100%]">
       {/* Sidebar */}
       <div
-        className={`h-screen transition-all duration-300 ease-in-out ${
+        className={` transition-all duration-300 ease-in-out ${
           sidebarState === "expanded" ? "w-72" : sidebarState === "mini" ? "w-20" : "w-20"
         } overflow-hidden shadow-xl relative flex-shrink-0`}
       >

@@ -728,10 +728,10 @@ const PlanningPage = () => {
   if (!mounted) return null
 
   return (
-    <div className="bg-gray-50 custom-scrollbar">
+    <div className="bg-gray-50 overflow-y-auto max-h-screen">
       <div className=" mx-auto p-4">
         {/* Header Section */}
-        <div className="mb-6 relative overflow-hidden">
+        <div className="mb-6 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-400 to-teal-400 opacity-10 rounded-xl"></div>
           <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-teal-50 rounded-xl p-6 relative shadow-lg border border-white">
             {/* Decorative elements */}

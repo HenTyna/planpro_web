@@ -11,7 +11,6 @@ const chatai = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-
         <GeminiChat />
       </main>
     </div>
