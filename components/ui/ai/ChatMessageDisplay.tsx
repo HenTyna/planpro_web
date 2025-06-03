@@ -1,5 +1,5 @@
 // components/ChatMessageDisplay.tsx
-import type { ChatMessage } from "@/types/chat"
+import type { ChatMessage } from "@/lib/types/chat"
 import { BotIcon, Sparkles } from "lucide-react"
 import type React from "react"
 

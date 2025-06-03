@@ -1,6 +1,6 @@
 // components/PopUpConfirmation.tsx
 
-import { ConfirmationTemplates } from '@/types/PopUpConfirmTemplate';
+import { ConfirmationTemplates } from '@/lib/types/PopUpConfirmTemplate';
 import { ConfirmationType } from '@/utils/enum';
 import React from 'react';
 

@@ -1,8 +1,9 @@
-
-import { useState, useRef, useEffect } from "react"
-import { Menu, Search, Settings, Moon, Sun, Bell, ChevronDown, LogOut, UserIcon, HelpCircle, Globe } from 'lucide-react'
-import Image from "next/image"
-import profile from "@/public/asset/profile.jpg"
+import { useFetchProfile } from "@/lib/hooks/useFetchProfile";
+import profile from "@/public/asset/profile.jpg";
+import { Bell, ChevronDown, Globe, HelpCircle, LogOut, Menu, Moon, Search, Settings, Sun, UserIcon } from 'lucide-react';
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import ProfileContrainer from "../profile/ProfileContrainer";
 interface NavBarProps {
   toggleSidebar: () => void
   currentTheme: {
@@ -19,13 +20,17 @@ const NavBar: React.FC<NavBarProps> = ({
   toggleSidebar,
   currentTheme,
   isDarkMode = false,
-  toggleDarkMode = () => {},
+  toggleDarkMode = () => { },
 }) => {
+
+  const {data, isError, isLoading} = useFetchProfile();
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const notificationsRef = useRef<HTMLDivElement>(null)
+  const [showProfile, setShowProfile] = useState(false);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -68,6 +73,19 @@ const NavBar: React.FC<NavBarProps> = ({
       isRead: true,
     },
   ]
+  const handleLogout = () => {
+    if (confirm("Are you sure you want to log out?")) {
+      window.location.href = "/login"; // Replace with your actual logout URL
+    }
+  }
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isError) {
+    return <div>Error..!</div>;
+  }
+
 
   return (
     <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 flex items-center justify-between shadow-sm z-20">
@@ -108,18 +126,16 @@ const NavBar: React.FC<NavBarProps> = ({
         <div className="relative">
           <Search
             size={18}
-            className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors ${
-              isSearchFocused ? `text-${currentTheme?.name.toLowerCase()}-500` : "text-gray-400"
-            }`}
+            className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors ${isSearchFocused ? `text-${currentTheme?.name.toLowerCase()}-500` : "text-gray-400"
+              }`}
           />
           <input
             type="text"
             placeholder="Search..."
             className={`pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none transition-all duration-300 w-48 md:w-64 lg:w-80
-              ${
-                isSearchFocused
-                  ? `border-${currentTheme?.name?.toLowerCase()}-500 ring-2 ring-${currentTheme?.name?.toLowerCase()}-200 bg-white dark:bg-gray-700`
-                  : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
+              ${isSearchFocused
+                ? `border-${currentTheme?.name?.toLowerCase()}-500 ring-2 ring-${currentTheme?.name?.toLowerCase()}-200 bg-white dark:bg-gray-700`
+                : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
               }
               text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500
             `}
@@ -168,11 +184,10 @@ const NavBar: React.FC<NavBarProps> = ({
                 {notifications?.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-2 ${
-                      notification.isRead
-                        ? "border-transparent"
-                        : `border-${currentTheme?.name?.toLowerCase()}-500`
-                    } transition-colors`}
+                    className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-2 ${notification.isRead
+                      ? "border-transparent"
+                      : `border-${currentTheme?.name?.toLowerCase()}-500`
+                      } transition-colors`}
                   >
                     <div className="flex justify-between">
                       <h4 className="text-sm font-medium text-gray-800 dark:text-white">{notification?.title}</h4>
@@ -208,12 +223,11 @@ const NavBar: React.FC<NavBarProps> = ({
             aria-haspopup="true"
           >
             <div
-              className={`h-8 w-8 rounded-full overflow-hidden flex items-center justify-center border-2 ${
-                isDropdownOpen ? `border-${currentTheme?.name?.toLowerCase()}-500` : "border-gray-200 dark:border-gray-600"
-              }`}
+              className={`h-8 w-8 rounded-full overflow-hidden flex items-center justify-center border-2 ${isDropdownOpen ? `border-${currentTheme?.name?.toLowerCase()}-500` : "border-gray-200 dark:border-gray-600"
+                }`}
             >
               <Image
-                src={profile}
+                src={ data?.profile_image_url || profile}
                 alt="User avatar"
                 width={48}
                 height={48}
@@ -222,9 +236,8 @@ const NavBar: React.FC<NavBarProps> = ({
             </div>
             <ChevronDown
               size={16}
-              className={`ml-1 transition-transform duration-200 ${
-                isDropdownOpen ? "rotate-180 text-gray-800 dark:text-white" : "text-gray-400 dark:text-gray-500"
-              }`}
+              className={`ml-1 transition-transform duration-200 ${isDropdownOpen ? "rotate-180 text-gray-800 dark:text-white" : "text-gray-400 dark:text-gray-500"
+                }`}
             />
           </button>
 
@@ -232,24 +245,24 @@ const NavBar: React.FC<NavBarProps> = ({
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 border border-gray-200 dark:border-gray-700 z-10 transition-all duration-200 animate-fadeIn">
               <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                <p className="text-sm font-medium text-gray-800 dark:text-white">John Doe</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">john.doe@example.com</p>
+                <p className="text-sm font-medium text-gray-800 dark:text-white">{data?.username}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{data?.email}</p>
               </div>
 
-              <a
-                href="#"
-                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+              <div
+                onClick={() => setShowProfile(true)}
+                className="cursor-pointer flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <UserIcon size={16} className="mr-3 text-gray-500 dark:text-gray-400" />
-                Your Profile
-              </a>
-              <a
+                Settings
+              </div>
+              {/* <a
                 href="#"
                 className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <Settings size={16} className="mr-3 text-gray-500 dark:text-gray-400" />
                 Settings
-              </a>
+              </a> */}
               <a
                 href="#"
                 className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -260,15 +273,18 @@ const NavBar: React.FC<NavBarProps> = ({
 
               <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
 
-              <a
-                href="#"
-                className="flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+              <div
+                onClick={handleLogout}
+                className="cursor-pointer flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <LogOut size={16} className="mr-3" />
                 Sign out
-              </a>
+              </div>
             </div>
           )}
+          {
+            showProfile && <ProfileContrainer profile_data={data} onClose={() => setShowProfile(false)}/>
+          }
         </div>
       </div>
     </nav>

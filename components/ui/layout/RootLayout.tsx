@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import NavBar from './Navbar';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface RootLayoutProps {
     children: React.ReactNode;
@@ -12,6 +14,7 @@ function RootLayout({ children }: RootLayoutProps) {
 
     return (
         <div className="w-full flex flex-col min-h-screen max-h-screen overflow-y-auto">
+            {/* <ToastContainer position="top-right" autoClose={3000} /> */}
             {/* Sidebar */}
             <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 

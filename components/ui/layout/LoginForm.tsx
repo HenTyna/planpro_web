@@ -1,49 +1,81 @@
-"use client"
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useReducer } from "react"
 import Link from "next/link"
-import { Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight, Github, Twitter } from "lucide-react"
+import { Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight, Github, Twitter, User } from "lucide-react"
 import { Input } from "@/components/shared/ui/Input"
 import { Button } from "@/components/shared/ui/Button"
-
+import {toast} from "react-hot-toast";
+import {signIn, useSession} from "next-auth/react";
+import { Path } from "@/utils/enum"
+import { useRouter } from "next/router"
+import { PasswordUtils } from "@/utils/PasswordUtils"
 export default function LoginPage() {
+    const router = useRouter()
     const [showPassword, setShowPassword] = useState(false)
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
     const [mounted, setMounted] = useState(false)
+
+    const [loginRequest, dispatch] = useReducer((state: any, action: any) : any => {
+        return { ...state, ...action }
+    }, {
+        user_name: '',
+        password: '',
+        loginError: '',
+        usernameError: false,
+        passwordError: false,
+        submitting: false
+    })
 
     useEffect(() => {
         setMounted(true)
     }, [])
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setError("")
-
-        if (!email || !password) {
-            setError("Please fill in all fields")
-            return
-        }
-
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+    
+        if (loginRequest.submitting) return;
+        dispatch({ submitting: true });
+        const toastId = toast.loading("Logging in...");
+    
         try {
-            setIsLoading(true)
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1500))
-            // In a real app, you would handle authentication here
-            console.log("Login attempt with:", { email, password })
-            // Redirect to dashboard or home page after successful login
-            window.location.href = "/trips"
+            setIsLoading(true);
+            setError("");
+    
+            const result = await signIn("credentials", {
+                redirect: false,
+                user_name: loginRequest.user_name,
+                password: loginRequest.password,
+                callbackUrl: Path.TRIP,
+            });
+    
+            if (result?.ok) {
+                const success = result?.url;
+                toast.success("Logged in successfully");
+                router.push(success!);
+                return;
+            }
+    
+            toast.error("Invalid username or password");
+            setError('Invalid username or password');
         } catch (err) {
-            setError("Invalid email or password")
+            console.error(err);
+            
+            setError("An error occurred. Please try again.");
         } finally {
-            setIsLoading(false)
+            toast.dismiss(toastId)
+            setIsLoading(false);
+            dispatch({ submitting: false });
         }
     }
-
+    
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const { name, value } = e.target;
+        dispatch({ [name]: value, loginError: "", [`${name}Error`]: false });
+    }
+    
     if (!mounted) return null
 
     return (
@@ -99,20 +131,20 @@ export default function LoginPage() {
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div className="space-y-2">
                                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                        Email
+                                        Username
                                     </label>
                                     <div className="relative group">
                                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-teal-400 rounded-md opacity-30 blur-sm group-hover:opacity-40 transition-opacity"></div>
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                                            <Mail className="h-5 w-5 text-blue-500" />
+                                            <User className="h-5 w-5 text-blue-500" />
                                         </div>
                                         <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="you@example.com"
+                                            name="user_name"
+                                            type="text"
+                                            placeholder="john_doe"
                                             className="pl-10 border-transparent bg-white relative z-10"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
+                                            value={loginRequest.user_name}
+                                            onChange={handleChange}
                                             required
                                         />
                                     </div>
@@ -137,12 +169,14 @@ export default function LoginPage() {
                                         </div>
                                         <Input
                                             id="password"
+                                            name="password"
                                             type={showPassword ? "text" : "password"}
                                             placeholder="••••••••"
                                             className="pl-10 pr-10 border-transparent bg-white relative z-10"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
+                                            value={loginRequest.password}
+                                            onChange={handleChange}
                                             required
+                                            maxLength={30}
                                         />
                                         <button
                                             type="button"

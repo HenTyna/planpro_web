@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import type { ChatMessage, ApiChatMessage } from "@/types/chat"
+import type { ChatMessage, ApiChatMessage } from "@/lib/types/chat"
 import { v4 as uuidv4 } from "uuid"
 import ChatMessageDisplay from "./ChatMessageDisplay"
 import ChatInput from "./ChatInput"
