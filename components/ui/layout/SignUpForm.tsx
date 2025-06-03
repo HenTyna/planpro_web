@@ -1,6 +1,3 @@
-// app/register/page.tsx or pages/register.tsx
-
-"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -19,6 +16,7 @@ import { useForm } from "react-hook-form";
 import { useFormContextState } from "@/lib/hooks/useFromState";
 import useSignUpMutation from "@/lib/hooks/useSignUpMutation";
 import { PasswordUtils } from "@/utils/PasswordUtils";
+import toast from "react-hot-toast";
 
 interface RegisterFormValues {
     user_name: string;
@@ -55,18 +53,29 @@ export default function RegisterPage() {
     }, []);
 
     const onSubmit = async (data: RegisterFormValues) => {
-        console.log("Data: ", data);
         setError("");
+        const toastId = toast.loading("Signing up...");
         try {
-            await mutation.mutate(data, {
+            const requestBody = {
+                user_name: data.user_name,
+                email: data.email,
+                password: PasswordUtils.encrypt(data.password),
+            };
+
+            await mutation.mutate(requestBody, {
                 onError: (err) => {
                     console.error("Registration error:", err);
                     setError("Registration failed. Please try again.");
                 },
+                onSuccess: () =>{
+                    toast.success("Account created successfully!");
+                }
             });
         } catch (err) {
             console.error("Unexpected registration error:", err);
             setError("An unexpected error occurred.");
+        }finally {
+            toast.dismiss(toastId);
         }
     };
 

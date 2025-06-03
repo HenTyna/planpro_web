@@ -76,9 +76,6 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                 firstName: editData.firstName,
                 lastName: editData.lastName,
                 email: editData.email,
-                phone: editData.phone,
-                // dob: editData.dob,
-                // notifications: editData.notifications,
             }
             // You can add callback here to save to backend
             // await onUpdate?.(editData)
@@ -87,7 +84,7 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                 toast.success("Profile updated successfully")
                 setProfileData(editData)
                 setIsEditing(false)
-
+                
             }
             setProfileData(editData)
             setIsEditing(false)

@@ -4,15 +4,17 @@ const ServiceId = {
     PROFILE: '/api/wb/v1/users'
 }
 
-// async function getProfile(): Promise<ProfileAccount>  {
-//     return http.get(ServiceId.PROFILE).then(res => res?.data?.data).catch(error => error);
-// }
 const getProfile = async () => {
     return http.get(ServiceId.PROFILE).then(res => res?.data?.data).catch(error => error);
 }
 
+//update profile
+const updateProfile = async (profile: any) => {
+    return http.put(ServiceId.PROFILE, profile).then(res => res?.data?.data).catch(error => error);
+}
 
 
 export const profileService = {
-    getProfile
+    getProfile,
+    updateProfile
 }
