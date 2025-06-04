@@ -1,41 +1,39 @@
+"use client"
+
+import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/shared/ui/Button"
 import { Input } from "@/components/shared/ui/Input"
-import { User, Mail, Phone, MapPin, Calendar, Camera, Bell, Shield, Palette, Star, Edit, Save, X } from "lucide-react"
+import { User, Mail, Phone, Calendar, Camera, Shield, Palette, Edit, Save, X, User2, Loader2 } from "lucide-react"
 import Image from "next/image"
 import { Label } from "@/components/shared/ui/label"
-import { Switch } from "@/components/shared/ui/swtich"
-import profile from "@/public/asset/profile.jpg";
+import profile from "@/public/asset/profile.jpg"
 import { profileService } from "@/service/profile.service"
 import toast from "react-hot-toast"
+import { useQueryClient } from "@tanstack/react-query"
+
 type Props = {
     profile_data: any
     onClose: () => void
+    onUpdate?: (updatedData: any) => Promise<any>
 }
 
-const ProfileContrainer = ({ profile_data, onClose }: Props) => {
+const ProfileContrainer = ({ profile_data, onClose, onUpdate }: Props) => {
+    const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState("personal")
     const [isEditing, setIsEditing] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
 
     // Initialize profile data from props or defaults
     const [profileData, setProfileData] = useState({
-        username: profile_data?.username || "JohnDoe",
-        firstName: profile_data?.firstName || "John",
-        lastName: profile_data?.lastName || "Doe",
-        email: profile_data?.email || "john.doe@example.com",
-        phone: profile_data?.phone || "+1 (555) 123-4567",
-        location: profile_data?.location || "San Francisco, CA",
-        birthday: profile_data?.birthday || "1990-01-15",
-        notifications: profile_data?.notifications ?? true,
-        pushNotifications: profile_data?.pushNotifications ?? true,
-        smsNotifications: profile_data?.smsNotifications ?? false,
-        darkMode: profile_data?.darkMode ?? false,
-        language: profile_data?.language || "English (US)",
-        timezone: profile_data?.timezone || "Pacific Time (PT)",
-        profileVisibility: profile_data?.profileVisibility ?? true,
-        showOnlineStatus: profile_data?.showOnlineStatus ?? true,
-        allowMessages: profile_data?.allowMessages ?? false,
+        username: profile_data?.username || "",
+        firstName: profile_data?.first_name || "john",
+        lastName: profile_data?.last_name || "doe",
+        email: profile_data?.email || "example@gmail.com",
+        phone: profile_data?.phone_number || "0000000000",
+        birthday: profile_data?.dob || "1990-01-01",
+        profile_image_url: profile_data?.profile_image_url || profile,
     })
 
     const [editData, setEditData] = useState(profileData)
@@ -51,13 +49,6 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
         setIsEditing(true)
     }
 
-    const handleSave = () => {
-        setProfileData(editData)
-        setIsEditing(false)
-        // You can add callback here to save to backend
-        // onSave?.(editData)
-    }
-
     const handleCancel = () => {
         setEditData(profileData)
         setIsEditing(false)
@@ -67,36 +58,58 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
         setEditData((prev) => ({ ...prev, [field]: value }))
     }
 
-   
-
-
-    const handleUpdate = async () => {
+    const handleSave = async () => {
         try {
-            let req = {
-                firstName: editData.firstName,
-                lastName: editData.lastName,
+            setIsLoading(true)
+
+            // Prepare request data
+            const requestData = {
+                first_name: editData.firstName,
+                last_name: editData.lastName,
                 email: editData.email,
-                phone: editData.phone,
-                // dob: editData.dob,
-                // notifications: editData.notifications,
+                phone_number: editData.phone,
+                dob: editData.birthday,
+                image_url: editData.profile_image_url,
+                username: editData.username,
             }
-            // You can add callback here to save to backend
-            // await onUpdate?.(editData)
-            const response = await profileService.updateProfile(req);
-            if (response.status === 200) {
+
+            // Use the onUpdate prop if provided, otherwise use the profileService
+            let response
+            if (onUpdate) {
+                response = await onUpdate(requestData)
+            } else {
+                response = await profileService.updateProfile(requestData)
+            }
+
+            // Handle successful response
+            if (response && response.status === 200) {
                 toast.success("Profile updated successfully")
                 setProfileData(editData)
                 setIsEditing(false)
-
+                queryClient.invalidateQueries({ queryKey: ['profile-data'] });
+            } else {
+                toast.error("Failed to update profile. Please try again.")
+                setProfileData(editData)
+                setIsEditing(false)
             }
-            setProfileData(editData)
-            setIsEditing(false)
+            console.log("requestData", requestData)
         } catch (error) {
             console.error("Error updating profile:", error)
-            // Handle error, show toast, etc.
+            toast.error("Failed to update profile. Please try again.")
+        } finally {
+            setIsLoading(false)
         }
     }
 
+    // Function to handle profile image upload
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            // Create a URL for the file
+            const imageUrl = URL.createObjectURL(file)
+            updateEditData("profile_image_url", imageUrl)
+        }
+    }
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fadeIn">
@@ -114,22 +127,19 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                         <div className="flex items-center gap-6">
                             <div className="relative group">
                                 <div className="w-24 h-24 border-4 border-white/20 shadow-xl rounded-full overflow-hidden">
-                                    <Image 
-                                        src={profile_data?.profile_image_url || profile}
+                                    <Image
+                                        src={editData.profile_image_url || "/placeholder.svg"}
                                         width={96}
                                         height={96}
                                         alt="Profile"
                                         className="w-full h-full object-cover"
                                     />
-                                    {/* <div className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-2xl font-bold">
-                                        {profileData.firstName[0]}
-                                        {profileData.lastName[0]}
-                                    </div> */}
                                 </div>
                                 {isEditing && (
-                                    <button className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <label className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                                         <Camera className="w-6 h-6 text-white" />
-                                    </button>
+                                        <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                                    </label>
                                 )}
                             </div>
 
@@ -137,16 +147,7 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                                 <h2 className="text-3xl font-bold mb-2">
                                     {profileData.firstName} {profileData.lastName}
                                 </h2>
-                                <p className="text-white/80 mb-3">{profile_data?.username}</p>
-                                <div className="flex gap-2">
-                                    {/* <Badge variant="secondary" className="bg-white/20 text-white border-0">
-                                        {profile_data?.membershipType || "Pro Member"}
-                                    </Badge>
-                                    <Badge variant="secondary" className="bg-white/20 text-white border-0">
-                                        <Star className="w-3 h-3 mr-1" />
-                                        {profile_data?.rating || "4.9"} Rating
-                                    </Badge> */}
-                                </div>
+                                <p className="text-white/80 mb-3">@{profileData.username}</p>
                             </div>
                         </div>
 
@@ -166,6 +167,7 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                                     <Button
                                         onClick={handleCancel}
                                         variant="secondary"
+                                        disabled={isLoading}
                                         className="bg-white/20 hover:bg-white/30 text-white border-white/30"
                                     >
                                         <X className="w-4 h-4 mr-2" />
@@ -174,10 +176,11 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                                     <Button
                                         onClick={handleSave}
                                         variant="secondary"
+                                        disabled={isLoading}
                                         className="bg-white/90 hover:bg-white text-purple-600 border-0"
                                     >
-                                        <Save className="w-4 h-4 mr-2" />
-                                        Save Changes
+                                        {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                                        {isLoading ? "Saving..." : "Save Changes"}
                                     </Button>
                                 </>
                             )}
@@ -194,8 +197,11 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors relative ${activeTab === tab.id ? "text-purple-600" : "text-gray-500 hover:text-gray-700"
-                                        }`}
+                                    disabled={tab.id !== "personal"}
+                                    className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors relative 
+                    ${activeTab === tab.id ? "text-purple-600" : "text-gray-500 hover:text-gray-700"}
+                    ${tab.id !== "personal" ? "opacity-50 cursor-not-allowed" : ""}
+                  `}
                                 >
                                     <Icon className="w-4 h-4" />
                                     {tab.label}
@@ -220,6 +226,7 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                                     </Label>
                                     {isEditing ? (
                                         <Input
+                                            placeholder="Enter your first name"
                                             value={editData.firstName}
                                             onChange={(e) => updateEditData("firstName", e.target.value)}
                                             className="border-purple-200 focus:border-purple-500"
@@ -237,6 +244,7 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                                     </Label>
                                     {isEditing ? (
                                         <Input
+                                            placeholder="Enter your last name"
                                             value={editData.lastName}
                                             onChange={(e) => updateEditData("lastName", e.target.value)}
                                             className="border-purple-200 focus:border-purple-500"
@@ -254,6 +262,7 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                                     </Label>
                                     {isEditing ? (
                                         <Input
+                                            placeholder="Enter your email"
                                             type="email"
                                             value={editData.email}
                                             onChange={(e) => updateEditData("email", e.target.value)}
@@ -272,6 +281,8 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                                     </Label>
                                     {isEditing ? (
                                         <Input
+                                            placeholder="Enter your phone number"
+                                            type="tel"
                                             value={editData.phone}
                                             onChange={(e) => updateEditData("phone", e.target.value)}
                                             className="border-green-200 focus:border-green-500"
@@ -281,20 +292,21 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                                     )}
                                 </div>
 
-                                {/* Location */}
+                                {/* Username */}
                                 <div className="space-y-2">
                                     <Label className="flex items-center gap-2">
-                                        <MapPin className="w-4 h-4 text-red-500" />
-                                        Location
+                                        <User2 className="w-4 h-4 text-red-500" />
+                                        Username
                                     </Label>
                                     {isEditing ? (
                                         <Input
-                                            value={editData.location}
-                                            onChange={(e) => updateEditData("location", e.target.value)}
+                                            placeholder="Enter your username"
+                                            value={editData.username}
+                                            onChange={(e) => updateEditData("username", e.target.value)}
                                             className="border-red-200 focus:border-red-500"
                                         />
                                     ) : (
-                                        <div className="p-3 bg-gray-50 rounded-md border">{profileData.location}</div>
+                                        <div className="p-3 bg-gray-50 rounded-md border">{profileData.username}</div>
                                     )}
                                 </div>
 
@@ -306,6 +318,7 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                                     </Label>
                                     {isEditing ? (
                                         <Input
+                                            placeholder="Enter your birthday"
                                             type="date"
                                             value={editData.birthday}
                                             onChange={(e) => updateEditData("birthday", e.target.value)}
@@ -325,156 +338,11 @@ const ProfileContrainer = ({ profile_data, onClose }: Props) => {
                         </div>
                     )}
 
-                    {activeTab === "preferences" && (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200">
-                                    <h3 className="font-semibold text-purple-900 flex items-center gap-2">
-                                        <Bell className="w-5 h-5" />
-                                        Notifications
-                                    </h3>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm">Email notifications</span>
-                                            <Switch
-                                                checked={isEditing ? editData.notifications : profileData.notifications}
-                                                onCheckedChange={(checked) => isEditing && updateEditData("notifications", checked)}
-                                                disabled={!isEditing}
-                                            />
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm">Push notifications</span>
-                                            <Switch
-                                                checked={isEditing ? editData.pushNotifications : profileData.pushNotifications}
-                                                onCheckedChange={(checked) => isEditing && updateEditData("pushNotifications", checked)}
-                                                disabled={!isEditing}
-                                            />
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm">SMS notifications</span>
-                                            <Switch
-                                                checked={isEditing ? editData.smsNotifications : profileData.smsNotifications}
-                                                onCheckedChange={(checked) => isEditing && updateEditData("smsNotifications", checked)}
-                                                disabled={!isEditing}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4 p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
-                                    <h3 className="font-semibold text-blue-900 flex items-center gap-2">
-                                        <Palette className="w-5 h-5" />
-                                        Appearance
-                                    </h3>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm">Dark mode</span>
-                                            <Switch
-                                                checked={isEditing ? editData.darkMode : profileData.darkMode}
-                                                onCheckedChange={(checked) => isEditing && updateEditData("darkMode", checked)}
-                                                disabled={!isEditing}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-sm">Theme color</Label>
-                                            <div className="flex gap-2">
-                                                {["bg-purple-500", "bg-blue-500", "bg-green-500", "bg-pink-500", "bg-orange-500"].map(
-                                                    (color) => (
-                                                        <button
-                                                            key={color}
-                                                            className={`w-8 h-8 rounded-full ${color} border-2 border-white shadow-md hover:scale-110 transition-transform ${!isEditing ? "cursor-not-allowed opacity-50" : ""}`}
-                                                            disabled={!isEditing}
-                                                        />
-                                                    ),
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === "security" && (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-4 p-4 bg-gradient-to-br from-red-50 to-orange-50 rounded-xl border border-red-200">
-                                    <h3 className="font-semibold text-red-900 flex items-center gap-2">
-                                        <Shield className="w-5 h-5" />
-                                        Password & Security
-                                    </h3>
-                                    <div className="space-y-3">
-                                        <Button
-                                            variant="outline"
-                                            className="w-full justify-start border-red-200 hover:bg-red-50"
-                                            disabled={!isEditing}
-                                        >
-                                            Change Password
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            className="w-full justify-start border-red-200 hover:bg-red-50"
-                                            disabled={!isEditing}
-                                        >
-                                            Enable Two-Factor Auth
-                                        </Button>
-                                        <Button variant="outline" className="w-full justify-start border-red-200 hover:bg-red-50">
-                                            View Login History
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4 p-4 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl border border-amber-200">
-                                    <h3 className="font-semibold text-amber-900">Privacy Settings</h3>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm">Profile visibility</span>
-                                            <Switch
-                                                checked={isEditing ? editData.profileVisibility : profileData.profileVisibility}
-                                                onCheckedChange={(checked) => isEditing && updateEditData("profileVisibility", checked)}
-                                                disabled={!isEditing}
-                                            />
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm">Show online status</span>
-                                            <Switch
-                                                checked={isEditing ? editData.showOnlineStatus : profileData.showOnlineStatus}
-                                                onCheckedChange={(checked) => isEditing && updateEditData("showOnlineStatus", checked)}
-                                                disabled={!isEditing}
-                                            />
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm">Allow messages from strangers</span>
-                                            <Switch
-                                                checked={isEditing ? editData.allowMessages : profileData.allowMessages}
-                                                onCheckedChange={(checked) => isEditing && updateEditData("allowMessages", checked)}
-                                                disabled={!isEditing}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200">
-                                <h3 className="font-semibold text-gray-900 mb-3">Connected Accounts</h3>
-                                <div className="space-y-2">
-                                    {["Google", "GitHub", "LinkedIn", "Twitter"].map((service) => (
-                                        <div key={service} className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                                            <span className="font-medium">{service}</span>
-                                            <Button variant="outline" size="sm" disabled={!isEditing}>
-                                                Connected
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                     <div className="mt-8 flex justify-end gap-3">
-                        <Button variant="outline" onClick={onClose}>
+                        <Button variant="outline" onClick={onClose} disabled={isLoading}>
                             Close
                         </Button>
+                        
                     </div>
                 </div>
             </div>

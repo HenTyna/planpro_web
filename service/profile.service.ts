@@ -10,7 +10,7 @@ const getProfile = async () => {
 
 //update profile
 const updateProfile = async (profile: any) => {
-    return http.put(ServiceId.PROFILE, profile).then(res => res?.data?.data).catch(error => error);
+    return http.patch(ServiceId.PROFILE, profile);
 }
 
 

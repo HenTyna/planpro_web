@@ -86,7 +86,6 @@ const NavBar: React.FC<NavBarProps> = ({
     return <div>Error..!</div>;
   }
 
-
   return (
     <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 flex items-center justify-between shadow-sm z-20">
       {/* Left section - Menu and search */}
@@ -245,7 +244,7 @@ const NavBar: React.FC<NavBarProps> = ({
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 border border-gray-200 dark:border-gray-700 z-10 transition-all duration-200 animate-fadeIn">
               <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                <p className="text-sm font-medium text-gray-800 dark:text-white">{data?.username}</p>
+                <p className="text-sm font-medium text-gray-800 dark:text-white">{`${data?.first_name} ${data?.last_name}` || data?.username}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{data?.email}</p>
               </div>
 
