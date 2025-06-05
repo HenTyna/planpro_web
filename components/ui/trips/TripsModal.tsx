@@ -1,5 +1,6 @@
 import { Button } from "@/components/shared/ui/Button"
 import { Input } from "@/components/shared/ui/Input"
+import { formatDateTime } from "@/utils/dateformat"
 import { Calendar, Globe, MapPin, Plane, Plus, Trash2, Users, Wallet, X } from "lucide-react"
 import { useState } from "react"
 
@@ -27,25 +28,27 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
     const [description, setDescription] = useState(trip?.description || "")
     const [categoryId, setCategoryId] = useState(trip?.categoryId || 2)
     const [statusId, setStatusId] = useState(trip?.statusId || 1)
-    const [startDate, setStartDate] = useState(trip?.startDate ? trip.startDate.toISOString().slice(0, 10) : "")
-    const [endDate, setEndDate] = useState(trip?.endDate ? trip.endDate.toISOString().slice(0, 10) : "")
+    const [startDate, setStartDate] = useState(trip?.startDate )
+    const [endDate, setEndDate] = useState(trip?.endDate )
     const [budget, setBudget] = useState(trip?.budget || 1000)
     const [currency, setCurrency] = useState(trip?.currency || "USD")
     const [accommodation, setAccommodation] = useState(trip?.accommodation || "")
     const [transportation, setTransportation] = useState(trip?.transportation || "")
     const [remarks, setRemark] = useState(trip?.remarks || "")
-    const [travelers, setTravelers] = useState(trip?.travelers?.join(", ") || "")
+    const [travelers, setTravelers] = useState(trip?.travelers || "")
     const [location, setLocation] = useState(trip?.location || "")
-
+    console.log("startDate", formatDateTime(startDate))
     // Destinations state with a default empty destination if creating a new trip
     const [destinations, setDestinations] = useState(
-        trip?.destinations || [{ destinationName: "", days: 1, activities: [""] }],
+        trip?.destinations || [{id: Date.now(),
+            destinationName: "", days: 1, activities: [""] }],
     )
 
     const handleAddDestination = () => {
         setDestinations([
             ...destinations,
             {
+                id: Date.now(),
                 destinationName: "",
                 days: 1,
                 activities: [""],
@@ -108,7 +111,7 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
 
         // Validate destinations
         for (const destination of destinations) {
-            if (!destination.name) {
+            if (!destination.destinationName) {
                 alert("Please provide a name for all destinations")
                 return
             }
@@ -125,8 +128,8 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
             description,
             category: Number(categoryId),
             status: Number(statusId),
-            startDate: new Date(startDate),
-            endDate: new Date(endDate),
+            startDate: formatDateTime(startDate),
+            endDate: formatDateTime(endDate),
             budget: Number(budget),
             currency,
             accommodation,
@@ -384,8 +387,8 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
                                             <div className="md:col-span-3">
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">Destination Name*</label>
                                                 <Input
-                                                    value={destination.name}
-                                                    onChange={(e) => handleDestinationChange(destination.id, "name", e.target.value)}
+                                                    value={destination.destinationName}
+                                                    onChange={(e) => handleDestinationChange(destination.id, "destinationName", e.target.value)}
                                                     placeholder="e.g., Paris, Tokyo"
                                                     required
                                                 />
@@ -405,8 +408,8 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Activities</label>
                                             <div className="space-y-2">
-                                                {destination.activities.map((activity: string, actIndex: number) => (
-                                                    <div key={actIndex} className="flex items-center gap-2">
+                                                {destination.activities?.map((activity: string, actIndex: number) => (
+                                                    <div key={`activity-${destination.id}-${actIndex}`} className="flex items-center gap-2">
                                                         <Input
                                                             value={activity}
                                                             onChange={(e) => handleActivityChange(destination.id, actIndex, e.target.value)}
@@ -419,6 +422,7 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
                                                                     type="button"
                                                                     onClick={() => handleRemoveActivity(destination.id, actIndex)}
                                                                     className="text-gray-400 hover:text-red-500 p-1"
+                                                                    aria-label="Remove activity"
                                                                 >
                                                                     <X className="h-4 w-4" />
                                                                 </button>
@@ -427,6 +431,7 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
                                                                 type="button"
                                                                 onClick={() => handleAddActivity(destination.id)}
                                                                 className="text-gray-400 hover:text-blue-500 p-1"
+                                                                aria-label="Add activity"
                                                             >
                                                                 <Plus className="h-4 w-4" />
                                                             </button>

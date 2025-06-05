@@ -1,5 +1,5 @@
-import { getDaysBetween, getDaysUntilTrip } from "@/utils/dateformat"
-import { formatCurrency, formatDate } from "@/utils/utils"
+import { formatDate, getDaysBetween, getDaysUntilTrip } from "@/utils/dateformat"
+import { formatCurrency } from "@/utils/utils"
 import { Calendar, Clock, Globe, MapPin, Plane, Users, Wallet } from "lucide-react"
 import Image from "next/image"
 
@@ -23,6 +23,7 @@ const tripStatuses = [
 
 // Trip Card Component
 const TripCard = ({ trip, onTripClick }: any) => {
+    console.log("Trip: ", trip)
     const category = tripCategories.find((c) => c.id === trip.categoryId)
     const status = tripStatuses.find((s) => s.id === trip.statusId)
     const tripDuration = getDaysBetween(trip.startDate, trip.endDate)
@@ -79,12 +80,12 @@ const TripCard = ({ trip, onTripClick }: any) => {
                 <div className="flex justify-between items-center">
                     <div
                         className={`text-xs font-medium ${daysUntilTrip < 0
-                                ? "text-gray-500"
-                                : daysUntilTrip === 0
-                                    ? "text-green-600"
-                                    : daysUntilTrip <= 7
-                                        ? "text-orange-600"
-                                        : "text-blue-600"
+                            ? "text-gray-500"
+                            : daysUntilTrip === 0
+                                ? "text-green-600"
+                                : daysUntilTrip <= 7
+                                    ? "text-orange-600"
+                                    : "text-blue-600"
                             }`}
                     >
                         {daysUntilTrip < 0
@@ -93,22 +94,23 @@ const TripCard = ({ trip, onTripClick }: any) => {
                                 ? "Departing today!"
                                 : `${daysUntilTrip} days until departure`}
                     </div>
-                    <div className="text-sm font-semibold text-gray-800">{formatCurrency(trip.budget, trip.currency)}</div>
+                    <div className="text-sm font-semibold text-gray-800">{trip.budget} {trip.currency}</div>
                 </div>
 
                 {/* Destinations Preview */}
                 <div className="mt-4 pt-4 border-t border-gray-100">
                     <div className="flex items-center gap-1 flex-wrap">
-                        {trip.destinations.map((destination: any, index: number) => (
-                            <div
-                                key={destination.id}
-                                className="flex items-center bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-700"
-                            >
+                        {trip.location ? (
+                            <div className="flex items-center bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-700">
                                 <MapPin className="h-3 w-3 mr-0.5 text-gray-500" />
-                                {destination.name}
-                                {index < trip.destinations.length - 1 && <span className="sr-only">, </span>}
+                                {trip.location || 'Unknown Location'}
                             </div>
-                        ))}
+                        ) : (
+                            <div className="flex items-center bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-700">
+                                <MapPin className="h-3 w-3 mr-0.5 text-gray-500" />
+                                <div className="text-xs text-gray-500">No location added</div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

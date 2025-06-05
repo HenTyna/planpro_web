@@ -1,6 +1,6 @@
 import { Button } from "@/components/shared/ui/Button"
-import { getDaysBetween, getDaysUntilTrip } from "@/utils/dateformat"
-import { formatCurrency, formatDate } from "@/utils/utils"
+import { formatDate, getDaysBetween, getDaysUntilTrip } from "@/utils/dateformat"
+import { formatCurrency } from "@/utils/utils"
 import { Calendar, Clock, CreditCard, Globe, Luggage, MapPin, Plane, PlaneLanding, Trash2, UserRound, Users, Wallet, X } from "lucide-react"
 import Image from "next/image"
 const tripCategories = [
@@ -13,19 +13,21 @@ const tripCategories = [
 ]
 
 const tripStatuses = [
-    { id: 1, name: "Planning", color: "bg-blue-400" },
-    { id: 2, name: "Booked", color: "bg-purple-400" },
-    { id: 3, name: "Upcoming", color: "bg-yellow-400" },
-    { id: 4, name: "In Progress", color: "bg-orange-400" },
-    { id: 5, name: "Completed", color: "bg-green-400" },
-    { id: 6, name: "Cancelled", color: "bg-gray-400" },
+    { name: "Planning", color: "bg-blue-400" },
+    { name: "Booked", color: "bg-purple-400" },
+    { name: "Upcoming", color: "bg-yellow-400" },
+    { name: "In Progress", color: "bg-orange-400" },
+    { name: "Completed", color: "bg-green-400" },
+    { name: "Cancelled", color: "bg-gray-400" },
+    { name: "On Hold", color: "bg-gray-400" }
+
 ]
 // Trip Details Modal Component
 const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
     if (!trip) return null
 
-    const category = tripCategories.find((c) => c.id === trip.categoryId)
-    const status = tripStatuses.find((s) => s.id === trip.statusId)
+    const category = tripCategories.find((c) => c.name === trip.category)
+    const status = tripStatuses.find((s) => s.name === trip.status)
     const tripDuration = getDaysBetween(trip.startDate, trip.endDate)
     const daysUntilTrip = getDaysUntilTrip(trip.startDate)
 
@@ -72,7 +74,7 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                             </div>
                         </div>
                         <div className="text-right">
-                            <div className="text-xl font-bold">{formatCurrency(trip.budget, trip.currency)}</div>
+                            <div className="text-xl font-bold">{trip.budget} {trip.currency}</div>
                             <div className="text-sm text-white/80">Budget</div>
                         </div>
                     </div>
@@ -106,12 +108,12 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                                 </span>
                                 <span
                                     className={`text-sm font-medium ${daysUntilTrip < 0
-                                            ? "text-gray-500"
-                                            : daysUntilTrip === 0
-                                                ? "text-green-600"
-                                                : daysUntilTrip <= 7
-                                                    ? "text-orange-600"
-                                                    : "text-blue-600"
+                                        ? "text-gray-500"
+                                        : daysUntilTrip === 0
+                                            ? "text-green-600"
+                                            : daysUntilTrip <= 7
+                                                ? "text-orange-600"
+                                                : "text-blue-600"
                                         }`}
                                 >
                                     {daysUntilTrip < 0
@@ -127,32 +129,73 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                         <div>
                             <h3 className="text-lg font-semibold text-gray-800 mb-4">Itinerary</h3>
                             <div className="space-y-4">
-                                {trip.destinations.map((destination: any, index: number) => (
-                                    <div
-                                        key={destination.id}
-                                        className="bg-gray-50 p-4 rounded-lg border border-gray-200 relative overflow-hidden"
-                                    >
-                                        <div
-                                            className={`absolute top-0 left-0 w-1 h-full ${index % 2 === 0 ? "bg-blue-400" : "bg-purple-400"
-                                                }`}
-                                        ></div>
-                                        <div className="pl-3">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h4 className="font-semibold text-gray-800">{destination.name}</h4>
-                                                <span className="text-sm text-gray-500">{destination.days} days</span>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <h5 className="text-xs font-medium text-gray-500 uppercase tracking-wider">Activities</h5>
-                                                <ul className="space-y-1">
-                                                    {destination.activities.map((activity: string, actIndex: number) => (
-                                                        <li key={actIndex} className="text-sm text-gray-600 flex items-start">
-                                                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 mr-2"></span>
-                                                            {activity}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
+                                {trip.destinations?.map((destinationGroup: any) => (
+                                    <div key={destinationGroup.tripId}>
+                                        {destinationGroup.destination.map((dest: any, index: number) => (
+                                            index % 2 === 0 ? (
+                                                // Style 1 - Blue theme
+                                                <div 
+                                                    key={dest.id}
+                                                    className="bg-blue-50 p-4 rounded-lg border-l-4 border border-blue-400 mb-4 relative"
+                                                >
+                                                    <div className="flex justify-between items-center mb-3">
+                                                        <h4 className="font-semibold text-blue-800">
+                                                            {dest.destination_name}
+                                                        </h4>
+                                                        <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                                            {dest.days} days
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <h5 className="text-xs font-medium text-gray-600 uppercase mb-2">
+                                                            Activities
+                                                        </h5>
+                                                        <ul className="space-y-2">
+                                                            {dest.activities.map((activity: string, actIndex: number) => (
+                                                                <li 
+                                                                    key={actIndex} 
+                                                                    className="text-sm text-blue-700 flex items-center"
+                                                                >
+                                                                    <span className="inline-block w-2 h-2 rounded-full bg-blue-400 mr-3"></span>
+                                                                    {activity}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                // Style 2 - Purple theme
+                                                <div 
+                                                    key={dest.id}
+                                                    className="bg-purple-50 p-4 rounded-lg border-l-4 border border-purple-400 mb-4 relative"
+                                                >
+                                                    <div className="flex justify-between items-center mb-3">
+                                                        <h4 className="font-semibold text-purple-800">
+                                                            {dest.destination_name}
+                                                        </h4>
+                                                        <span className="text-sm bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                                                            {dest.days} days
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <h5 className="text-xs font-medium text-gray-600 uppercase mb-2">
+                                                            Activities
+                                                        </h5>
+                                                        <ul className="space-y-2">
+                                                            {dest.activities.map((activity: string, actIndex: number) => (
+                                                                <li 
+                                                                    key={actIndex} 
+                                                                    className="text-sm text-purple-700 flex items-center"
+                                                                >
+                                                                    <span className="inline-block w-2 h-2 rounded-full bg-purple-400 mr-3"></span>
+                                                                    {activity}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            )
+                                        ))}
                                     </div>
                                 ))}
                             </div>
@@ -163,23 +206,25 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <h4 className="text-sm font-medium text-gray-500 mb-2">Travelers</h4>
                                 <div className="flex flex-wrap gap-2">
-                                    {trip.travelers.map((traveler: string, index: number) => (
+                                    {trip.travelers.split(',').map((traveler: string, index: number) => (
                                         <div
                                             key={index}
                                             className="flex items-center bg-white rounded-full px-3 py-1 border border-gray-200"
                                         >
                                             <Users className="h-3 w-3 mr-1 text-gray-500" />
-                                            <span className="text-xs font-medium text-gray-700">{traveler}</span>
+                                            <span className="text-xs font-medium text-gray-700">{traveler.trim()}</span>
                                         </div>
-                                    ))}
+                                    ))
+                                    }
                                 </div>
+
                             </div>
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <h4 className="text-sm font-medium text-gray-500 mb-2">Budget</h4>
                                 <div className="flex items-center">
                                     <CreditCard className="h-4 w-4 mr-2 text-gray-500" />
                                     <span className="text-lg font-semibold text-gray-800">
-                                        {formatCurrency(trip.budget, trip.currency)}
+                                        {trip.budget} {trip.currency}
                                     </span>
                                 </div>
                             </div>

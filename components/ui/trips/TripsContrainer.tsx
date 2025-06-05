@@ -1,6 +1,5 @@
-"use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 
 import {
@@ -27,7 +26,7 @@ import TripCard from "./TripCard"
 import TripDetailsModal from "./TripsDetailModal"
 import TripModal from "./TripsModal"
 import { getDaysUntilTrip } from "@/utils/dateformat"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { tripsService } from "@/service/trips.service"
 import toast from "react-hot-toast"
 // Sample trip data
@@ -48,124 +47,11 @@ const tripStatuses = [
   { id: 5, name: "Completed", color: "bg-green-400" },
   { id: 6, name: "Cancelled", color: "bg-gray-400" },
 ]
-
-const sampleTrips = [
-  {
-    id: 1,
-    title: "Japan Adventure",
-    description: "Exploring Tokyo, Kyoto, and Osaka for cultural immersion and food experiences.",
-    categoryId: 2,
-    statusId: 3,
-    startDate: new Date(2025, 5, 15),
-    endDate: new Date(2025, 5, 30),
-    budget: 5000,
-    currency: "USD",
-    createdAt: new Date(2025, 2, 10),
-    updatedAt: new Date(2025, 3, 5),
-    destinations: [
-      { id: 1, name: "Tokyo", days: 7, activities: ["Shibuya Crossing", "Tokyo Tower", "Tsukiji Market"] },
-      { id: 2, name: "Kyoto", days: 5, activities: ["Fushimi Inari Shrine", "Arashiyama Bamboo Grove", "Kinkaku-ji"] },
-      { id: 3, name: "Osaka", days: 3, activities: ["Osaka Castle", "Dotonbori", "Universal Studios Japan"] },
-    ],
-    travelers: ["John Doe", "Jane Smith"],
-    accommodation: "Mix of hotels and traditional ryokans",
-    transportation: "Japan Rail Pass, local subway",
-    notes: "Need to book ryokan in Kyoto at least 3 months in advance. Research vegetarian restaurant options.",
-    image: "/placeholder.svg?height=400&width=600",
-  },
-  {
-    id: 2,
-    title: "European Business Conference",
-    description: "Attending the annual tech conference in Berlin with team meetings in Paris.",
-    categoryId: 1,
-    statusId: 2,
-    startDate: new Date(2025, 8, 10),
-    endDate: new Date(2025, 8, 20),
-    budget: 3500,
-    currency: "EUR",
-    createdAt: new Date(2025, 3, 15),
-    updatedAt: new Date(2025, 4, 1),
-    destinations: [
-      { id: 1, name: "Berlin", days: 5, activities: ["Tech Conference", "Client Meetings", "Networking Event"] },
-      { id: 2, name: "Paris", days: 5, activities: ["Team Workshop", "Strategy Planning", "Client Dinner"] },
-    ],
-    travelers: ["Alex Johnson", "Sarah Williams", "Michael Brown"],
-    accommodation: "Hilton Hotels (corporate rate)",
-    transportation: "Business class flights, taxi",
-    notes: "Expense reports due within 2 weeks of return. Schedule team dinner in Paris.",
-    image: "/placeholder.svg?height=400&width=600",
-  },
-  {
-    id: 3,
-    title: "Weekend Getaway to Mountains",
-    description: "Relaxing mountain retreat with hiking, spa, and nature photography.",
-    categoryId: 3,
-    statusId: 5,
-    startDate: new Date(2025, 3, 5),
-    endDate: new Date(2025, 3, 7),
-    budget: 800,
-    currency: "USD",
-    createdAt: new Date(2025, 2, 1),
-    updatedAt: new Date(2025, 2, 15),
-    destinations: [{ id: 1, name: "Blue Ridge Mountains", days: 3, activities: ["Hiking", "Photography", "Spa Day"] }],
-    travelers: ["Jane Smith", "Robert Johnson"],
-    accommodation: "Mountain View Lodge",
-    transportation: "Rental car",
-    notes: "Pack hiking boots and camera equipment. Check weather forecast before departure.",
-    image: "/placeholder.svg?height=400&width=600",
-  },
-  {
-    id: 4,
-    title: "Family Summer Vacation",
-    description: "Annual family beach vacation with water activities and relaxation.",
-    categoryId: 4,
-    statusId: 1,
-    startDate: new Date(2025, 6, 20),
-    endDate: new Date(2025, 7, 5),
-    budget: 4500,
-    currency: "USD",
-    createdAt: new Date(2025, 1, 10),
-    updatedAt: new Date(2025, 3, 20),
-    destinations: [
-      { id: 1, name: "Maui, Hawaii", days: 16, activities: ["Beach Days", "Snorkeling", "Luau", "Volcano Tour"] },
-    ],
-    travelers: ["John Doe", "Mary Doe", "Emma Doe", "Jack Doe"],
-    accommodation: "Beachfront villa rental",
-    transportation: "Economy flights, rental minivan",
-    notes: "Book luau and volcano tour in advance. Research family-friendly restaurants.",
-    image: "/placeholder.svg?height=400&width=600",
-  },
-  {
-    id: 5,
-    title: "South America Adventure",
-    description: "Exploring Peru and Bolivia with hiking, cultural experiences, and photography.",
-    categoryId: 5,
-    statusId: 1,
-    startDate: new Date(2025, 9, 1),
-    endDate: new Date(2025, 9, 21),
-    budget: 6000,
-    currency: "USD",
-    createdAt: new Date(2025, 3, 5),
-    updatedAt: new Date(2025, 4, 10),
-    destinations: [
-      { id: 1, name: "Lima, Peru", days: 3, activities: ["City Tour", "Food Exploration", "Museums"] },
-      { id: 2, name: "Cusco & Machu Picchu", days: 7, activities: ["Inca Trail", "Machu Picchu", "Sacred Valley"] },
-      { id: 3, name: "La Paz, Bolivia", days: 4, activities: ["City Exploration", "Death Road Biking", "Markets"] },
-      { id: 4, name: "Uyuni Salt Flats", days: 3, activities: ["Salt Flats Tour", "Photography", "Stargazing"] },
-    ],
-    travelers: ["Michael Brown", "Jessica Lee"],
-    accommodation: "Mix of hotels and hostels",
-    transportation: "Local flights, buses, guided tours",
-    notes: "Book Inca Trail permits 6 months in advance. Altitude medication needed. Spanish phrasebook.",
-    image: "/placeholder.svg?height=400&width=600",
-  },
-]
-
 // Main Trip Component
 const TripPage = () => {
   const { data, isLoading } = useFetchTrips()
-  console.log("first data", data)
-  const [trips, setTrips] = useState(sampleTrips)
+  const queryClient = useQueryClient();
+  const [trips, setTrips] = useState(data || [])
   const [selectedTrip, setSelectedTrip] = useState<any>(null)
   const [showTripModal, setShowTripModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
@@ -199,9 +85,10 @@ const TripPage = () => {
       return await tripsService.createTrip(trip);
     },
     onSuccess: (newTrip) => {
-      setTrips(prev => [...prev, newTrip.data]);
+      setTrips((prev: any[]) => [...prev, newTrip.data]);
       setShowTripModal(false);
       toast.success("Trip created successfully");
+      queryClient.invalidateQueries({ queryKey: ['trips-data'] });
     },
     onError: (error) => {
       toast.error("Failed to create trip");
@@ -226,7 +113,7 @@ const TripPage = () => {
 
   const handleSaveTrip = async (trip: any) => {
     try {
-      if (trip.id && trips.some((t) => t.id === trip.id)) {
+      if (trip.id && trips.some((t: any) => t.id === trip.id)) {
         // Update existing trip
         // updateMutation.mutate(trip);
       } else {
@@ -238,29 +125,38 @@ const TripPage = () => {
     }
   }
   const handleDeleteTrip = (tripId: number) => {
-    setTrips(trips.filter((t) => t.id !== tripId))
+    setTrips(trips.filter((t: any) => t.id !== tripId))
   }
 
   // Filter trips
-  const filteredTrips = trips.filter((trip) => {
-    const matchesSearch =
-      trip.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      trip.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      trip.destinations.some((d: any) => d.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  // const filteredTrips = useMemo(() => {
+  //   return trips.filter((trip: any) => {
+  //     const matchesSearch =
+  //       trip?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //       trip?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //       trip?.destinations?.some((d: any) => d.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
-    const matchesCategory = filterCategory === "all" || trip.categoryId === Number(filterCategory)
-    const matchesStatus = filterStatus === "all" || trip.statusId === Number(filterStatus)
+  //     const matchesCategory = filterCategory === "all" || trip.categoryId === Number(filterCategory)
+  //     const matchesStatus = filterStatus === "all" || trip.statusId === Number(filterStatus)
 
-    return matchesSearch && matchesCategory && matchesStatus
-  })
+  //     return matchesSearch && matchesCategory && matchesStatus
+  //   });
+  // }, [trips, searchQuery, filterCategory, filterStatus]);
+
+  // console.log("Filtered trips: ", filteredTrips)
 
   // Statistics
   const totalTrips = trips.length
-  const upcomingTrips = trips.filter((t) => getDaysUntilTrip(t.startDate) > 0).length
-  const completedTrips = trips.filter((t) => t.statusId === 5).length
-  const totalDestinations = trips.reduce((sum, t) => sum + t.destinations.length, 0)
+  const upcomingTrips = trips.filter((t: any) => (t.startDate) > 0).length
+  console.log("completedTrips", upcomingTrips)
+  const completedTrips = trips.filter((t: any) => t.statusId === 5).length
+  const totalDestinations = trips?.reduce((sum: any, t: any) => sum + t?.destinations?.length, 0)
 
   if (!mounted) return null
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
 
   return (
     <div className="bg-gray-50 max-h-screen overflow-auto">
@@ -364,9 +260,9 @@ const TripPage = () => {
           </div>
 
           <div className="p-6">
-            {filteredTrips.length > 0 ? (
+            {data?.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTrips.map((trip) => (
+                {data?.map((trip: any) => (
                   <TripCard key={trip.id} trip={trip} onTripClick={handleTripClick} />
                 ))}
               </div>
