@@ -23,7 +23,6 @@ const tripStatuses = [
 
 // Trip Card Component
 const TripCard = ({ trip, onTripClick }: any) => {
-    console.log("Trip: ", trip)
     const category = tripCategories.find((c) => c.id === trip.categoryId)
     const status = tripStatuses.find((s) => s.id === trip.statusId)
     const tripDuration = getDaysBetween(trip.startDate, trip.endDate)
@@ -37,7 +36,7 @@ const TripCard = ({ trip, onTripClick }: any) => {
             {/* Trip Image */}
             <div className="relative h-40 overflow-hidden">
                 <Image
-                    src={trip.image || "/placeholder.svg?height=400&width=600"}
+                    src={trip.imageUrl || "/placeholder.svg?height=400&width=600"}
                     alt={trip.title}
                     width={600}
                     height={400}

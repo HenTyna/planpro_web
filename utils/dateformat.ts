@@ -48,3 +48,17 @@ export const formatDate = (value: any) => {
   }
   return moment(value, "YYYYMMDDHHmmss").format("MMM, DD YYYY")
 }
+
+export const formatStartAndEndDate = (date: any) => {
+  if (!date) {
+      return "";
+  }
+  return moment(date, "YYYYMMDDHHmmss").format("DD-MMM-YYYY")
+}
+
+export const formatDateV2 = (date?: string | Date): string => {
+  if (!date) return '';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return ''; // guard for invalid date
+  return d.toISOString().split('T')[0];
+};

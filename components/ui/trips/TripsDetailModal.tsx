@@ -3,6 +3,14 @@ import { formatDate, getDaysBetween, getDaysUntilTrip } from "@/utils/dateformat
 import { formatCurrency } from "@/utils/utils"
 import { Calendar, Clock, CreditCard, Globe, Luggage, MapPin, Plane, PlaneLanding, Trash2, UserRound, Users, Wallet, X } from "lucide-react"
 import Image from "next/image"
+import { ConfirmationType } from "@/utils/enum"
+import { useState } from "react"
+import dynamic from "next/dynamic"
+
+const OnConfirmationDelete = dynamic(() => import('@/components/ui/trips/OnConfirmationDelete').then(mod => mod.OnConfirmationDelete), {
+    ssr: false,
+  })
+
 const tripCategories = [
     { id: 1, name: "Business", color: "bg-blue-400", icon: Wallet },
     { id: 2, name: "Vacation", color: "bg-green-400", icon: Plane },
@@ -30,6 +38,7 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
     const status = tripStatuses.find((s) => s.name === trip.status)
     const tripDuration = getDaysBetween(trip.startDate, trip.endDate)
     const daysUntilTrip = getDaysUntilTrip(trip.startDate)
+    const [showDelete, setShowDelete] = useState(false)
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fadeIn">
@@ -134,7 +143,7 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                                         {destinationGroup.destination.map((dest: any, index: number) => (
                                             index % 2 === 0 ? (
                                                 // Style 1 - Blue theme
-                                                <div 
+                                                <div
                                                     key={dest.id}
                                                     className="bg-blue-50 p-4 rounded-lg border-l-4 border border-blue-400 mb-4 relative"
                                                 >
@@ -152,8 +161,8 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                                                         </h5>
                                                         <ul className="space-y-2">
                                                             {dest.activities.map((activity: string, actIndex: number) => (
-                                                                <li 
-                                                                    key={actIndex} 
+                                                                <li
+                                                                    key={actIndex}
                                                                     className="text-sm text-blue-700 flex items-center"
                                                                 >
                                                                     <span className="inline-block w-2 h-2 rounded-full bg-blue-400 mr-3"></span>
@@ -165,7 +174,7 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                                                 </div>
                                             ) : (
                                                 // Style 2 - Purple theme
-                                                <div 
+                                                <div
                                                     key={dest.id}
                                                     className="bg-purple-50 p-4 rounded-lg border-l-4 border border-purple-400 mb-4 relative"
                                                 >
@@ -183,8 +192,8 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                                                         </h5>
                                                         <ul className="space-y-2">
                                                             {dest.activities.map((activity: string, actIndex: number) => (
-                                                                <li 
-                                                                    key={actIndex} 
+                                                                <li
+                                                                    key={actIndex}
                                                                     className="text-sm text-purple-700 flex items-center"
                                                                 >
                                                                     <span className="inline-block w-2 h-2 rounded-full bg-purple-400 mr-3"></span>
@@ -258,10 +267,7 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                             variant="outline"
                             className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
                             onClick={() => {
-                                if (confirm("Are you sure you want to delete this trip?")) {
-                                    onDelete(trip.id)
-                                    onClose()
-                                }
+                                setShowDelete(true)
                             }}
                         >
                             <Trash2 className="h-4 w-4 mr-1" /> Delete Trip
@@ -273,6 +279,21 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                     </div>
                 </div>
             </div>
+            {
+                showDelete && (
+                    <OnConfirmationDelete
+                        show={showDelete}
+                        type={ConfirmationType.DELETE}
+                        onConfirm={() => {
+                            onDelete?.(trip?.id); 
+                            setShowDelete(false);
+                            onClose();
+                          }}
+                        onClose={() => setShowDelete(false)}
+                    />
+                )
+            }
+            
         </div>
     )
 }

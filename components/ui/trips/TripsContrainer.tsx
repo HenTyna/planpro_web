@@ -29,6 +29,8 @@ import { getDaysUntilTrip } from "@/utils/dateformat"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { tripsService } from "@/service/trips.service"
 import toast from "react-hot-toast"
+import { ConfirmationDialog } from "../notes/NotesList"
+import { ConfirmationType } from "@/utils/enum"
 // Sample trip data
 const tripCategories = [
   { id: 1, name: "Business", color: "bg-blue-400", icon: Wallet },
@@ -59,6 +61,7 @@ const TripPage = () => {
   const [filterCategory, setFilterCategory] = useState("all")
   const [filterStatus, setFilterStatus] = useState("all")
   const [mounted, setMounted] = useState(false)
+  
 
   useEffect(() => {
     setMounted(true)
@@ -92,30 +95,48 @@ const TripPage = () => {
     },
     onError: (error) => {
       toast.error("Failed to create trip");
+      setShowTripModal(true);
       console.error('Error creating trip:', error);
     }
   });
 
-  // const updateMutation = useMutation({
-  //   mutationFn: async (trip: any) => {
-  //     return await tripsService.updateTrip(trip.id, trip);
-  //   },
-  //   onSuccess: (updatedTrip) => {
-  //     setTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
-  //     setShowTripModal(false);
-  //     toast.success("Trip updated successfully");
-  //   },
-  //   onError: (error) => {
-  //     toast.error("Failed to update trip");
-  //     console.error('Error updating trip:', error);
-  //   }
-  // });
+  const updateMutation = useMutation({
+    mutationFn: async (data: { id: number; request: any }) => {
+      return await tripsService.updateTrip(data.id, data.request);
+    },
+    onSuccess: (updatedTrip) => {
+      setTrips((prev: any[]) => prev.map(t => t.id === updatedTrip.data.id ? updatedTrip.data : t));
+      setShowTripModal(false);
+      toast.success("Trip updated successfully");
+      queryClient.invalidateQueries({ queryKey: ['trips-data'] });
+    },
+    onError: (error) => {
+      toast.error("Failed to update trip");
+      setShowTripModal(true);
+      console.error('Error updating trip:', error);
+    }
+  });
+
+  //mutation delete trip
+  const deleteMutation = useMutation({
+    mutationFn: async (id: any) => {
+      return await tripsService.deleteTrip(id);
+    },
+    onSuccess: () => {
+      toast.success("Trip deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ['trips-data'] });
+    },
+    onError: (error) => {
+      toast.error("Failed to delete trip");
+      console.error('Error deleting trip:', error);
+    }
+  });
 
   const handleSaveTrip = async (trip: any) => {
     try {
       if (trip.id && trips.some((t: any) => t.id === trip.id)) {
         // Update existing trip
-        // updateMutation.mutate(trip);
+        updateMutation.mutate(trip);
       } else {
         // Add new trip
         createMutation.mutate(trip);
@@ -126,6 +147,7 @@ const TripPage = () => {
   }
   const handleDeleteTrip = (tripId: number) => {
     setTrips(trips.filter((t: any) => t.id !== tripId))
+    deleteMutation.mutate(tripId);
   }
 
   // Filter trips
@@ -148,7 +170,6 @@ const TripPage = () => {
   // Statistics
   const totalTrips = trips.length
   const upcomingTrips = trips.filter((t: any) => (t.startDate) > 0).length
-  console.log("completedTrips", upcomingTrips)
   const completedTrips = trips.filter((t: any) => t.statusId === 5).length
   const totalDestinations = trips?.reduce((sum: any, t: any) => sum + t?.destinations?.length, 0)
 

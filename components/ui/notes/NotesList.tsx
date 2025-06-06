@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react"
 import { CalendarDays, Check, Plus, Save, Search, Trash2, X } from "lucide-react"
-import { dateFormat } from "@/utils/dateformat"
 import { ConfirmationType } from "@/utils/enum"
 import { Button } from "@/components/shared/ui/Button"
 import { Input } from "@/components/shared/ui/Input"
 import Image from "next/image"
 import todo from "@/public/asset/TodosImage.png"
+import { formatDate } from "@/utils/dateformat"
 
 
 // Sample notes data
@@ -74,7 +74,7 @@ const noteColors = [
 ]
 
 // Confirmation Dialog Component
-const ConfirmationDialog = ({ show, type, onConfirm, onClose }: any) => {
+export const ConfirmationDialog = ({ show, type, onConfirm, onClose }: any) => {
   if (!show) return null
 
   return (
@@ -159,7 +159,7 @@ const NoteCard = ({ note, isSelected, onSelect, onDelete }: any) => {
         <p className="text-xs text-gray-700 line-clamp-3 mb-2 flex-grow">{note.content}</p>
         <div className="flex items-center text-xs text-gray-700 mt-auto">
           <CalendarDays size={12} className="mr-1" />
-          {dateFormat(note.createdAt)}
+          {formatDate(note.createdAt)}
         </div>
       </div>
     </div>

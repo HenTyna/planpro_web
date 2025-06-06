@@ -1,8 +1,8 @@
 import { Button } from "@/components/shared/ui/Button"
 import { Input } from "@/components/shared/ui/Input"
-import { formatDateTime } from "@/utils/dateformat"
+import { formatDateTime, formatDateV2 } from "@/utils/dateformat"
 import { Calendar, Globe, MapPin, Plane, Plus, Trash2, Users, Wallet, X } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 
 const tripCategories = [
@@ -37,12 +37,16 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
     const [remarks, setRemark] = useState(trip?.remarks || "")
     const [travelers, setTravelers] = useState(trip?.travelers || "")
     const [location, setLocation] = useState(trip?.location || "")
-    console.log("startDate", formatDateTime(startDate))
-    // Destinations state with a default empty destination if creating a new trip
+    const [imageUrl, setImageUrl] = useState(trip?.imageUrl || "")
+
+
     const [destinations, setDestinations] = useState(
-        trip?.destinations || [{id: Date.now(),
-            destinationName: "", days: 1, activities: [""] }],
+        trip?.destinations || [{
+            id: Date.now(),
+            destinationName: "", days: 1, activities: [""]
+        }],
     )
+
 
     const handleAddDestination = () => {
         setDestinations([
@@ -110,18 +114,18 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
         }
 
         // Validate destinations
-        for (const destination of destinations) {
-            if (!destination.destinationName) {
-                alert("Please provide a name for all destinations")
-                return
-            }
-            for (const activity of destination.activities) {
-                if (!activity) {
-                    alert("Please provide a description for all activities")
-                    return
-                }
-            }
-        }
+        // for (const destination of destinations) {
+        //     if (!destination.destinationName) {
+        //         alert("Please provide a name for all destinations")
+        //         return
+        //     }
+        //     for (const activity of destination.activities) {
+        //         if (!activity) {
+        //             alert("Please provide a description for all activities")
+        //             return
+        //         }
+        //     }
+        // }
 
         const updatedTrip = {
             title,
@@ -137,13 +141,15 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
             remarks,
             travelers: travelers,
             destinations,
-            imageUrl: trip?.imageUrl || "/placeholder.svg?height=400&width=600",
+            imageUrl: imageUrl || "/placeholder.svg?height=400&width=600",
             location
         }
         console.log("updatedTrip", updatedTrip)
         onSave(updatedTrip)
         onClose()
     }
+
+
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fadeIn">
@@ -353,6 +359,62 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
                                 />
                             </div>
                         </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Trip Image</label>
+                            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                <div className="space-y-1 text-center">
+                                    {imageUrl ? (
+                                        <div className="relative w-full h-48">
+                                            <img
+                                                src={imageUrl}
+                                                alt="Trip preview"
+                                                className="mx-auto object-cover rounded-lg h-full w-full"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <svg
+                                            className="mx-auto h-12 w-12 text-gray-400"
+                                            stroke="currentColor"
+                                            fill="none"
+                                            viewBox="0 0 48 48"
+                                            aria-hidden="true"
+                                        >
+                                            <path
+                                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                                strokeWidth={2}
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            />
+                                        </svg>
+                                    )}
+                                    <div className="flex text-sm text-gray-600">
+                                        <label
+                                            htmlFor="file-upload"
+                                            className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500"
+                                        >
+                                            <span>Upload a file</span>
+                                            <input
+                                                id="file-upload"
+                                                name="file-upload"
+                                                type="file"
+                                                accept="image/*"
+                                                className="sr-only"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const imageUrl = URL.createObjectURL(file);
+                                                        setImageUrl(imageUrl)
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                        <p className="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                                </div>
+                            </div>
+                        </div>
+
 
                         {/* Destinations Section */}
                         <div className="border-t border-gray-200 pt-6">
@@ -369,79 +431,104 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
                             </div>
 
                             <div className="space-y-6">
-                                {destinations.map((destination: any, index: number) => (
+                                {destinations.map((destination: any) => (
                                     <div key={destination.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200 relative">
-                                        <div className="absolute top-2 right-2">
-                                            {destinations.length > 1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleRemoveDestination(destination.id)}
-                                                    className="text-gray-400 hover:text-red-500 p-1"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                                            <div className="md:col-span-3">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Destination Name*</label>
-                                                <Input
-                                                    value={destination.destinationName}
-                                                    onChange={(e) => handleDestinationChange(destination.id, "destinationName", e.target.value)}
-                                                    placeholder="e.g., Paris, Tokyo"
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Days</label>
-                                                <Input
-                                                    type="number"
-                                                    value={destination.days}
-                                                    onChange={(e) => handleDestinationChange(destination.id, "days", Number(e.target.value))}
-                                                    min="1"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Activities</label>
-                                            <div className="space-y-2">
-                                                {destination.activities?.map((activity: string, actIndex: number) => (
-                                                    <div key={`activity-${destination.id}-${actIndex}`} className="flex items-center gap-2">
-                                                        <Input
-                                                            value={activity}
-                                                            onChange={(e) => handleActivityChange(destination.id, actIndex, e.target.value)}
-                                                            placeholder="e.g., Visit Eiffel Tower"
-                                                            className="flex-1"
-                                                        />
-                                                        <div className="flex items-center">
-                                                            {destination.activities.length > 1 && (
+                                        {
+                                            destination.destination.map((item: any, index: number) => (
+                                                index === 0 && (
+                                                    <div key={item.id}>
+                                                        <div className="absolute top-2 right-2">
+                                                            {destinations.length > 1 && (
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() => handleRemoveActivity(destination.id, actIndex)}
+                                                                    onClick={() => handleRemoveDestination(item.id)}
                                                                     className="text-gray-400 hover:text-red-500 p-1"
-                                                                    aria-label="Remove activity"
                                                                 >
-                                                                    <X className="h-4 w-4" />
+                                                                    <Trash2 className="h-4 w-4" />
                                                                 </button>
                                                             )}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleAddActivity(destination.id)}
-                                                                className="text-gray-400 hover:text-blue-500 p-1"
-                                                                aria-label="Add activity"
-                                                            >
-                                                                <Plus className="h-4 w-4" />
-                                                            </button>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                                            <div className="md:col-span-3">
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Destination Name*
+                                                                </label>
+                                                                <Input
+                                                                    value={item.destinationName}
+                                                                    onChange={(e) =>
+                                                                        handleDestinationChange(item.id, "destinationName", e.target.value)
+                                                                    }
+                                                                    placeholder="e.g., Watch the sunrise"
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Days
+                                                                </label>
+                                                                <Input
+                                                                    type="number"
+                                                                    value={item.day}
+                                                                    onChange={(e) =>
+                                                                        handleDestinationChange(item.id, "day", Number(e.target.value))
+                                                                    }
+                                                                    min="1"
+                                                                    required
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                Activities
+                                                            </label>
+                                                            <div className="space-y-2">
+                                                                {item.activities?.map((activity: any, actIndex: number) => (
+                                                                    <div
+                                                                        key={`activity-${item.id}-${actIndex}`}
+                                                                        className="flex items-center gap-2"
+                                                                    >
+                                                                        <Input
+                                                                            value={activity?.activities}
+                                                                            onChange={(e) =>
+                                                                                handleActivityChange(item.id, actIndex, e.target.value)
+                                                                            }
+                                                                            placeholder="e.g., bay srub near angkor wat"
+                                                                            className="flex-1"
+                                                                        />
+                                                                        <div className="flex items-center">
+                                                                            {item.activities.length > 1 && (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => handleRemoveActivity(item.id, actIndex)}
+                                                                                    className="text-gray-400 hover:text-red-500 p-1"
+                                                                                    aria-label="Remove activity"
+                                                                                >
+                                                                                    <X className="h-4 w-4" />
+                                                                                </button>
+                                                                            )}
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleAddActivity(item.id)}
+                                                                                className="text-gray-400 hover:text-blue-500 p-1"
+                                                                                aria-label="Add activity"
+                                                                            >
+                                                                                <Plus className="h-4 w-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </div>
+                                                )
+                                            ))
+                                        }
+
                                     </div>
                                 ))}
+
                             </div>
                         </div>
                     </div>
