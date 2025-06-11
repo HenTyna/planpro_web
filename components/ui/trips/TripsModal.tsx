@@ -1,9 +1,16 @@
+import type React from "react"
+
 import { Button } from "@/components/shared/ui/Button"
 import { Input } from "@/components/shared/ui/Input"
-import { formatDateTime, formatDateV2 } from "@/utils/dateformat"
 import { Calendar, Globe, MapPin, Plane, Plus, Trash2, Users, Wallet, X } from "lucide-react"
-import { useEffect, useState } from "react"
-
+import { useForm, useFieldArray, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { useRef, useState } from "react"
+import { profileService } from "@/service/profile.service"
+import toast from "react-hot-toast"
+import { useMutation } from "@tanstack/react-query"
+import { tripsService } from "@/service/trips.service"
 
 const tripCategories = [
     { id: 1, name: "Business", color: "bg-blue-400", icon: Wallet },
@@ -22,134 +29,193 @@ const tripStatuses = [
     { id: 5, name: "Completed", color: "bg-green-400" },
     { id: 6, name: "Cancelled", color: "bg-gray-400" },
 ]
-// Add/Edit Trip Modal Component
-const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
-    const [title, setTitle] = useState(trip?.title || "")
-    const [description, setDescription] = useState(trip?.description || "")
-    const [categoryId, setCategoryId] = useState(trip?.categoryId || 2)
-    const [statusId, setStatusId] = useState(trip?.statusId || 1)
-    const [startDate, setStartDate] = useState(trip?.startDate )
-    const [endDate, setEndDate] = useState(trip?.endDate )
-    const [budget, setBudget] = useState(trip?.budget || 1000)
-    const [currency, setCurrency] = useState(trip?.currency || "USD")
-    const [accommodation, setAccommodation] = useState(trip?.accommodation || "")
-    const [transportation, setTransportation] = useState(trip?.transportation || "")
-    const [remarks, setRemark] = useState(trip?.remarks || "")
-    const [travelers, setTravelers] = useState(trip?.travelers || "")
-    const [location, setLocation] = useState(trip?.location || "")
-    const [imageUrl, setImageUrl] = useState(trip?.imageUrl || "")
 
-
-    const [destinations, setDestinations] = useState(
-        trip?.destinations || [{
-            id: Date.now(),
-            destinationName: "", days: 1, activities: [""]
-        }],
+// Form validation schema matching API structure
+const tripFormSchema = z
+    .object({
+        title: z.string().min(1, "Trip title is required").max(100, "Title must be less than 100 characters"),
+        description: z.string().min(1, "Description is required").max(500, "Description must be less than 500 characters"),
+        category: z.string().min(1, "Please select a category"),
+        status: z.string().min(1, "Please select a status"),
+        startDate: z.string().min(1, "Start date is required"),
+        endDate: z.string().min(1, "End date is required"),
+        location: z.string().min(1, "Location is required"),
+        budget: z.number().min(0, "Budget must be a positive number"),
+        currency: z.string().min(1, "Please select a currency"),
+        accommodation: z.string().min(1, "Accommodation is required"),
+        transportation: z.string().min(1, "Transportation is required"),
+        remarks: z.string().optional(),
+        travelers: z.string().min(1, "Travelers information is required"),
+        imageUrl: z.string().optional(),
+        destinations: z
+            .array(
+                z.object({
+                    destination_id: z.optional(z.string()),
+                    id: z.string(),
+                    destinationName: z.string().min(1, "Destination name is required"),
+                    days: z.number().min(1, "Days must be at least 1"),
+                    activities: z.string().min(1, "Activity description is required")
+                }),
+            )
+    })
+    .refine(
+        (data) => {
+            const startDate = new Date(data.startDate)
+            const endDate = new Date(data.endDate)
+            return endDate >= startDate
+        },
+        {
+            message: "End date must be after or equal to start date",
+            path: ["endDate"],
+        },
     )
 
+type TripFormData = z.infer<typeof tripFormSchema>
 
-    const handleAddDestination = () => {
-        setDestinations([
-            ...destinations,
-            {
-                id: Date.now(),
+interface TripModalProps {
+    trip?: any
+    onClose: () => void
+    onSave: (trip: any) => void
+    isNew?: boolean
+}
+
+const TripModal = ({ trip, onClose, onSave, isNew = false }: TripModalProps) => {
+    const [fileImage, setFileImage] = useState<File | null>(null);
+    const hiddenFileInput = useRef<HTMLInputElement>(null);
+
+    const destData = trip?.destinations?.[0]?.destination || [];
+
+    console.log("destData", destData)
+    const {
+        register,
+        control,
+        handleSubmit,
+        watch,
+        setValue,
+        formState: { errors, isSubmitting },
+    } = useForm<TripFormData>({
+        resolver: zodResolver(tripFormSchema),
+        defaultValues: {
+            title: trip?.title || "",
+            description: trip?.description || "",
+            category: trip?.category ? String(trip.category) : "Vacation",
+            status: trip?.status ? String(trip.status) : "Planning",
+            startDate: trip?.startDate || Date.now().toString(),
+            endDate: trip?.endDate || Date.now().toString(),
+            location: trip?.location || "",
+            budget: trip?.budget || 1000,
+            currency: trip?.currency ? String(trip.currency) : "USD",
+            accommodation: trip?.accommodation || "",
+            transportation: trip?.transportation || "",
+            remarks: trip?.remarks || "",
+            travelers: trip?.travelers || "",
+            imageUrl: trip?.imageUrl || "",
+            // Initialize destinations with empty array if no data
+            destinations: destData?.length ? destData.map((dest: any) => ({
+                destination_id: typeof dest.destination_id === "number" ? dest.destination_id : undefined,
+                id: dest.id,
+                destinationName: dest.destination_name,
+                days: dest.days,
+                activities: dest.activities,
+            })) : [{
+                id: Date.now().toString(),
                 destinationName: "",
                 days: 1,
-                activities: [""],
-            },
-        ])
+                activities: "",
+                destination_id: 0,
+            }]
+        },
+    })
+
+    const {
+        fields: destinationFields,
+        append: appendDestination,
+        remove: removeDestination,
+    } = useFieldArray({
+        control,
+        name: "destinations",
+    })
+
+    //log error
+    console.log("errors", errors)
+    
+    const watchedImageUrl = watch("imageUrl")
+
+    const handleAddDestination = () => {
+        appendDestination({
+            id: Date.now().toString(),
+            destinationName: "",
+            days: 1,
+            activities: "",
+        })
     }
 
-    const handleRemoveDestination = (id: number) => {
-        if (destinations.length > 1) {
-            setDestinations(destinations.filter((d: any) => d.id !== id))
+    //mutation remove destination
+    const { mutate: removeDestinationMutation } = useMutation({
+        mutationFn: (destinationId: any) => tripsService.removeDestination(destinationId),
+        onSuccess: () => {
+            toast.success("Destination has been removed")
+        },
+        onError: () => {
+            toast.error("Failed to remove destination")
+        }
+    })
+    
+    const handleRemoveDestination = (index: any) => {
+        if (destinationFields.length > 1) {
+            // Now destinationFields[index].destination_id is always present (may be empty string if new)
+            if (destinationFields[index].destination_id) {
+                removeDestinationMutation(destinationFields[index].destination_id)
+            }
+            removeDestination(index)
         }
     }
 
-    const handleDestinationChange = (id: number, field: string, value: any) => {
-        setDestinations(destinations.map((d: any) => (d.id === id ? { ...d, [field]: value } : d)))
-    }
-
-    const handleAddActivity = (destinationId: number) => {
-        setDestinations(
-            destinations.map((d: any) => (d.id === destinationId ? { ...d, activities: [...d.activities, ""] } : d)),
-        )
-    }
-
-    const handleRemoveActivity = (destinationId: number, activityIndex: number) => {
-        setDestinations(
-            destinations.map((d: any) => {
-                if (d.id === destinationId && d.activities.length > 1) {
-                    const newActivities = [...d.activities]
-                    newActivities.splice(activityIndex, 1)
-                    return { ...d, activities: newActivities }
-                }
-                return d
-            }),
-        )
-    }
-
-    const handleActivityChange = (destinationId: number, activityIndex: number, value: string) => {
-        setDestinations(
-            destinations.map((d: any) => {
-                if (d.id === destinationId) {
-                    const newActivities = [...d.activities]
-                    newActivities[activityIndex] = value
-                    return { ...d, activities: newActivities }
-                }
-                return d
-            }),
-        )
-    }
-
-    const handleSave = () => {
-        if (!title || !description || !startDate || !endDate) {
-            alert("Please fill in all required fields")
+    const onSubmit = async (data: TripFormData) => {
+        //check if data is not null but nestination can be null
+        if (!data) {
+            toast.error("Please fill in all fields")
             return
         }
 
-        if (new Date(endDate) < new Date(startDate)) {
-            alert("End date cannot be before start date")
-            return
-        }
 
-        // Validate destinations
-        // for (const destination of destinations) {
-        //     if (!destination.destinationName) {
-        //         alert("Please provide a name for all destinations")
-        //         return
-        //     }
-        //     for (const activity of destination.activities) {
-        //         if (!activity) {
-        //             alert("Please provide a description for all activities")
-        //             return
-        //         }
-        //     }
-        // }
+        let imageUrl = null;
+        if (fileImage != null) {
+            try {
+                const fileResponse = await profileService.uploadImage(fileImage);
+                imageUrl = fileResponse.data.data.image_url;
+            } catch (error) {
+                toast.error("Fail to upload image");
+                return;
+            }
+        }
 
         const updatedTrip = {
-            title,
-            description,
-            category: Number(categoryId),
-            status: Number(statusId),
-            startDate: formatDateTime(startDate),
-            endDate: formatDateTime(endDate),
-            budget: Number(budget),
-            currency,
-            accommodation,
-            transportation,
-            remarks,
-            travelers: travelers,
-            destinations,
-            imageUrl: imageUrl || "/placeholder.svg?height=400&width=600",
-            location
+            id: trip?.id,
+            ...data,
+            imageUrl,
         }
+
         console.log("updatedTrip", updatedTrip)
         onSave(updatedTrip)
         onClose()
     }
 
+    const handleImageUpload = async (e: any) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            const imageUrl = URL.createObjectURL(file)
+            setFileImage(file)
+            setValue("imageUrl", imageUrl)
+        }
+    }
 
+
+    //currency
+    const currencyList = {
+        USD: "US Dollar",
+        RIEL: "Cambodian Riel",
+    }
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fadeIn">
@@ -164,21 +230,18 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
                     <h2 className="text-xl font-semibold">{isNew ? "Create New Trip" : "Edit Trip"}</h2>
                 </div>
 
-                <div className="p-6 max-h-[calc(90vh-120px)] overflow-y-auto custom-scrollbar">
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="p-6 max-h-[calc(90vh-120px)] overflow-y-auto custom-scrollbar"
+                >
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="md:col-span-2">
                                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                                     Trip Title*
                                 </label>
-                                <Input
-                                    id="title"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    placeholder="Enter trip title"
-                                    required
-                                    className="w-full"
-                                />
+                                <Input id="title" {...register("title")} placeholder="Enter trip title" className="w-full" />
+                                {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
                             </div>
 
                             <div className="md:col-span-2">
@@ -187,186 +250,175 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
                                 </label>
                                 <textarea
                                     id="description"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
+                                    {...register("description")}
                                     placeholder="Describe your trip"
                                     rows={3}
                                     className="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
-                                    required
                                 />
+                                {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
                             </div>
 
                             <div>
                                 <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Category
+                                    Category*
                                 </label>
                                 <select
                                     id="category"
-                                    value={categoryId}
-                                    onChange={(e) => setCategoryId(Number(e.target.value))}
+                                    {...register("category")}
                                     className="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
                                 >
+                                    <option value="">Select category</option>
                                     {tripCategories.map((category) => (
-                                        <option key={category.id} value={category.id}>
+                                        <option key={category.id} value={category.name}>
                                             {category.name}
                                         </option>
                                     ))}
                                 </select>
+                                {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>}
                             </div>
 
                             <div>
                                 <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Status
+                                    Status*
                                 </label>
                                 <select
                                     id="status"
-                                    value={statusId}
-                                    onChange={(e) => setStatusId(Number(e.target.value))}
+                                    {...register("status")}
                                     className="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
                                 >
+                                    <option value="">Select status</option>
                                     {tripStatuses.map((status) => (
-                                        <option key={status.id} value={status.id}>
+                                        <option key={status.id} value={status.name}>
                                             {status.name}
                                         </option>
                                     ))}
                                 </select>
+                                {errors.status && <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>}
                             </div>
 
                             <div>
                                 <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
                                     Start Date*
                                 </label>
-                                <Input
-                                    id="startDate"
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    required
-                                    className="w-full"
-                                />
+                                <Input id="startDate" type="date" {...register("startDate")} className="w-full" />
+                                {errors.startDate && <p className="mt-1 text-sm text-red-600">{errors.startDate.message}</p>}
                             </div>
 
                             <div>
                                 <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
                                     End Date*
                                 </label>
-                                <Input
-                                    id="endDate"
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    required
-                                    className="w-full"
-                                />
+                                <Input id="endDate" type="date" {...register("endDate")} className="w-full" />
+                                {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate.message}</p>}
                             </div>
 
                             <div>
                                 <label htmlFor="budget" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Budget
+                                    Budget*
                                 </label>
                                 <Input
                                     id="budget"
                                     type="number"
-                                    value={budget}
-                                    onChange={(e) => setBudget(Number(e.target.value))}
+                                    {...register("budget", { valueAsNumber: true })}
                                     min="0"
-                                    step="100"
+                                    step="0.01"
                                     className="w-full"
                                 />
+                                {errors.budget && <p className="mt-1 text-sm text-red-600">{errors.budget.message}</p>}
                             </div>
 
                             <div>
                                 <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Currency
+                                    Currency*
                                 </label>
                                 <select
                                     id="currency"
-                                    value={currency}
-                                    onChange={(e) => setCurrency(e.target.value)}
+                                    {...register("currency")}
                                     className="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
                                 >
-                                    <option value="USD">USD - US Dollar</option>
-                                    <option value="EUR">EUR - Euro</option>
-                                    <option value="GBP">GBP - British Pound</option>
-                                    <option value="JPY">JPY - Japanese Yen</option>
-                                    <option value="CAD">CAD - Canadian Dollar</option>
-                                    <option value="AUD">AUD - Australian Dollar</option>
+                                    {Object.entries(currencyList).map(([key, value]) => (
+                                        <option key={key} value={key}>
+                                            {key} - {value}
+                                        </option>
+                                    ))}
                                 </select>
+                                {errors.currency && <p className="mt-1 text-sm text-red-600">{errors.currency.message}</p>}
                             </div>
 
                             <div className="md:col-span-2">
-                                <label htmlFor="travelers" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Travelers (comma separated)
-                                </label>
-                                <Input
-                                    id="travelers"
-                                    value={travelers}
-                                    onChange={(e) => setTravelers(e.target.value)}
-                                    placeholder="John Doe, Jane Smith"
-                                    className="w-full"
-                                />
-                            </div>
-                            <div className="md:col-span-2">
                                 <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Location (Link to Google Maps)
+                                    Location*
                                 </label>
                                 <Input
                                     id="location"
-                                    value={location}
-                                    onChange={(e) => setLocation(e.target.value)}
-                                    placeholder="URL_ADDRESS.gl/maps/..."
+                                    {...register("location")}
+                                    placeholder="e.g., Paris, France or Google Maps URL"
                                     className="w-full"
                                 />
+                                {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>}
                             </div>
 
                             <div>
                                 <label htmlFor="accommodation" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Accommodation
+                                    Accommodation*
                                 </label>
                                 <Input
                                     id="accommodation"
-                                    value={accommodation}
-                                    onChange={(e) => setAccommodation(e.target.value)}
+                                    {...register("accommodation")}
                                     placeholder="Hotels, Airbnb, etc."
                                     className="w-full"
                                 />
+                                {errors.accommodation && <p className="mt-1 text-sm text-red-600">{errors.accommodation.message}</p>}
                             </div>
 
                             <div>
                                 <label htmlFor="transportation" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Transportation
+                                    Transportation*
                                 </label>
                                 <Input
                                     id="transportation"
-                                    value={transportation}
-                                    onChange={(e) => setTransportation(e.target.value)}
+                                    {...register("transportation")}
                                     placeholder="Flights, rental car, etc."
                                     className="w-full"
                                 />
+                                {errors.transportation && <p className="mt-1 text-sm text-red-600">{errors.transportation.message}</p>}
                             </div>
 
                             <div className="md:col-span-2">
-                                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="travelers" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Travelers* (comma separated)
+                                </label>
+                                <Input
+                                    id="travelers"
+                                    {...register("travelers")}
+                                    placeholder="John Doe, Jane Smith"
+                                    className="w-full"
+                                />
+                                {errors.travelers && <p className="mt-1 text-sm text-red-600">{errors.travelers.message}</p>}
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label htmlFor="remarks" className="block text-sm font-medium text-gray-700 mb-1">
                                     Notes
                                 </label>
                                 <textarea
-                                    id="notes"
-                                    value={remarks}
-                                    onChange={(e) => setRemark(e.target.value)}
+                                    id="remarks"
+                                    {...register("remarks")}
                                     placeholder="Additional notes, reminders, etc."
                                     rows={2}
                                     className="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
                                 />
                             </div>
                         </div>
+
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Trip Image</label>
                             <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                                 <div className="space-y-1 text-center">
-                                    {imageUrl ? (
+                                    {watchedImageUrl ? (
                                         <div className="relative w-full h-48">
                                             <img
-                                                src={imageUrl}
+                                                src={watchedImageUrl || "/placeholder.svg"}
                                                 alt="Trip preview"
                                                 className="mx-auto object-cover rounded-lg h-full w-full"
                                             />
@@ -394,18 +446,14 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
                                         >
                                             <span>Upload a file</span>
                                             <input
+                                                // value={fileImage?.name || "Choose a file"}
                                                 id="file-upload"
                                                 name="file-upload"
                                                 type="file"
                                                 accept="image/*"
                                                 className="sr-only"
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        const imageUrl = URL.createObjectURL(file);
-                                                        setImageUrl(imageUrl)
-                                                    }
-                                                }}
+                                                ref={hiddenFileInput}
+                                                onChange={handleImageUpload}
                                             />
                                         </label>
                                         <p className="pl-1">or drag and drop</p>
@@ -415,12 +463,12 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
                             </div>
                         </div>
 
-
                         {/* Destinations Section */}
                         <div className="border-t border-gray-200 pt-6">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold text-gray-800">Destinations & Activities</h3>
                                 <Button
+                                    type="button"
                                     size="sm"
                                     variant="outline"
                                     onClick={handleAddDestination}
@@ -430,123 +478,85 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: any) => {
                                 </Button>
                             </div>
 
+                            {errors.destinations && <p className="mb-4 text-sm text-red-600">{errors.destinations.message}</p>}
+
                             <div className="space-y-6">
-                                {destinations.map((destination: any) => (
+                                {destinationFields.map((destination, destinationIndex) => (
                                     <div key={destination.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200 relative">
-                                        {
-                                            destination.destination.map((item: any, index: number) => (
-                                                index === 0 && (
-                                                    <div key={item.id}>
-                                                        <div className="absolute top-2 right-2">
-                                                            {destinations.length > 1 && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleRemoveDestination(item.id)}
-                                                                    className="text-gray-400 hover:text-red-500 p-1"
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </button>
-                                                            )}
-                                                        </div>
+                                        <div className="absolute top-2 right-2">
+                                            {destinationFields.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveDestination(destinationIndex)}
+                                                    className="text-gray-400 hover:text-red-500 p-1"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                        </div>
 
-                                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                                                            <div className="md:col-span-3">
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Destination Name*
-                                                                </label>
-                                                                <Input
-                                                                    value={item.destinationName}
-                                                                    onChange={(e) =>
-                                                                        handleDestinationChange(item.id, "destinationName", e.target.value)
-                                                                    }
-                                                                    placeholder="e.g., Watch the sunrise"
-                                                                    required
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Days
-                                                                </label>
-                                                                <Input
-                                                                    type="number"
-                                                                    value={item.day}
-                                                                    onChange={(e) =>
-                                                                        handleDestinationChange(item.id, "day", Number(e.target.value))
-                                                                    }
-                                                                    min="1"
-                                                                    required
-                                                                />
-                                                            </div>
-                                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                            <div className="md:col-span-3">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Destination Name*</label>
+                                                <Input
+                                                    {...register(`destinations.${destinationIndex}.destinationName`)}
+                                                    placeholder="e.g., Paris, France"
+                                                />
+                                                {errors.destinations?.[destinationIndex]?.destinationName && (
+                                                    <p className="mt-1 text-sm text-red-600">
+                                                        {errors.destinations[destinationIndex]?.destinationName?.message}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Days*</label>
+                                                <Input
+                                                    type="number"
+                                                    {...register(`destinations.${destinationIndex}.days`, { valueAsNumber: true })}
+                                                    min="1"
+                                                />
+                                                {errors.destinations?.[destinationIndex]?.days && (
+                                                    <p className="mt-1 text-sm text-red-600">
+                                                        {errors.destinations[destinationIndex]?.days?.message}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
 
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                                Activities
-                                                            </label>
-                                                            <div className="space-y-2">
-                                                                {item.activities?.map((activity: any, actIndex: number) => (
-                                                                    <div
-                                                                        key={`activity-${item.id}-${actIndex}`}
-                                                                        className="flex items-center gap-2"
-                                                                    >
-                                                                        <Input
-                                                                            value={activity?.activities}
-                                                                            onChange={(e) =>
-                                                                                handleActivityChange(item.id, actIndex, e.target.value)
-                                                                            }
-                                                                            placeholder="e.g., bay srub near angkor wat"
-                                                                            className="flex-1"
-                                                                        />
-                                                                        <div className="flex items-center">
-                                                                            {item.activities.length > 1 && (
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => handleRemoveActivity(item.id, actIndex)}
-                                                                                    className="text-gray-400 hover:text-red-500 p-1"
-                                                                                    aria-label="Remove activity"
-                                                                                >
-                                                                                    <X className="h-4 w-4" />
-                                                                                </button>
-                                                                            )}
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => handleAddActivity(item.id)}
-                                                                                className="text-gray-400 hover:text-blue-500 p-1"
-                                                                                aria-label="Add activity"
-                                                                            >
-                                                                                <Plus className="h-4 w-4" />
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )
-                                            ))
-                                        }
-
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Activities*</label>
+                                            <Input
+                                                {...register(`destinations.${destinationIndex}.activities`)}
+                                                placeholder="e.g., Visit Eiffel Tower, Louvre Museum, Seine River Cruise"
+                                                className="w-full"
+                                            />
+                                            {errors.destinations?.[destinationIndex]?.activities && (
+                                                <p className="mt-1 text-sm text-red-600">
+                                                    {errors.destinations[destinationIndex]?.activities?.message}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
-
                             </div>
                         </div>
                     </div>
 
                     <div className="mt-8 flex justify-end gap-3">
-                        <Button variant="outline" onClick={onClose}>
+                        <Button type="button" variant="outline" onClick={onClose}>
                             Cancel
                         </Button>
-                        <Button onClick={handleSave} className="relative group overflow-hidden">
+                        <Button type="submit" disabled={isSubmitting} className="relative group overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-400 to-blue-500 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:via-purple-500 group-hover:to-blue-600 transition-all duration-300"></div>
                             <span className="relative z-10 flex items-center justify-center text-white">
-                                {isNew ? "Create Trip" : "Save Changes"}
+                                {isSubmitting ? "Saving..." : isNew ? "Create Trip" : "Save Changes"}
                             </span>
                         </Button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     )
 }
+
 export default TripModal

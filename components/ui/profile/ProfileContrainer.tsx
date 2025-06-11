@@ -24,7 +24,7 @@ const ProfileContrainer = ({ profile_data, onClose, onUpdate }: Props) => {
     const [activeTab, setActiveTab] = useState("personal")
     const [isEditing, setIsEditing] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-
+    const [fileImage, setFileImage] = useState<File | null>(null)
     // Initialize profile data from props or defaults
     const [profileData, setProfileData] = useState({
         username: profile_data?.username || "",
@@ -62,6 +62,17 @@ const ProfileContrainer = ({ profile_data, onClose, onUpdate }: Props) => {
         try {
             setIsLoading(true)
 
+            let imageUrl = null;
+            if (fileImage != null) {
+                try {
+                    const fileResponse = await profileService.uploadImage(fileImage);
+                    imageUrl = fileResponse.data.data.image_url;
+                } catch (error) {
+                    toast.error("Fail to upload image");    
+                    return;
+                }
+            }
+
             // Prepare request data
             const requestData = {
                 first_name: editData.firstName,
@@ -69,7 +80,7 @@ const ProfileContrainer = ({ profile_data, onClose, onUpdate }: Props) => {
                 email: editData.email,
                 phone_number: editData.phone,
                 dob: editData.birthday,
-                image_url: editData.profile_image_url,
+                image_url: imageUrl,
                 username: editData.username,
             }
 
@@ -108,6 +119,7 @@ const ProfileContrainer = ({ profile_data, onClose, onUpdate }: Props) => {
             // Create a URL for the file
             const imageUrl = URL.createObjectURL(file)
             updateEditData("profile_image_url", imageUrl)
+            setFileImage(file)
         }
     }
 

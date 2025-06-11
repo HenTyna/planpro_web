@@ -8,7 +8,7 @@ const createTrip = async (trip: any) => {
 }
 
 const updateTrip = async (tripId: any, body: any) => {
-    return http.put(`${ServiceId.TRIPS}/${tripId.id}` , body);
+    return http.put(`${ServiceId.TRIPS}/${tripId}` , body);
 }
 
 const getTrips = async () => {
@@ -19,9 +19,14 @@ const deleteTrip = async (tripId: string) => {
     return http.delete(`${ServiceId.TRIPS}/${tripId}`);
 }
 
+const removeDestination = async (destinationId: string) => {
+    return http.delete(`${ServiceId.TRIPS}/destination/${destinationId}`);
+}
+
 export const tripsService = {
     createTrip,
     updateTrip,
     getTrips,
-    deleteTrip
+    deleteTrip,
+    removeDestination
 }

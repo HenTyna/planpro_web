@@ -48,11 +48,8 @@ export const authOption: NextAuthOptions = ({
                     user_name: credentials?.user_name!,
                     password: PasswordUtils.encrypt(credentials?.password!),
                 }
-                console.log("request", authRequest)
                 const response = await authService.login(authRequest)
                     .catch(err => err);
-
-                    console.log(response);
                     
 
                 if (response.status === 200) {

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 const useFetchTrips = () => {
 
-    const { data, isLoading, isError } = useQuery({
+    const { data, isLoading, isError, refetch, error } = useQuery({
         queryKey: ['trips-data'],
         queryFn: () => tripsService.getTrips(),
         retry: 0,
@@ -17,7 +17,10 @@ const useFetchTrips = () => {
     return {
         data,
         isLoading,
-        isError
+        isError,
+        refetch,
+        error
+
     }
 
 }

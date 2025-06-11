@@ -62,3 +62,6 @@ export const formatDateV2 = (date?: string | Date): string => {
   if (isNaN(d.getTime())) return ''; // guard for invalid date
   return d.toISOString().split('T')[0];
 };
+export const formatTime = (date: Date) => {
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}

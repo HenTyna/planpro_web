@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-
+import { formatTime } from "@/utils/dateformat"
 import {
     Calendar,
     CalendarDays,
@@ -19,7 +19,8 @@ import {
 import { Input } from "@/components/shared/ui/Input"
 import { Button } from "@/components/shared/ui/Button"
 import CalendarPic from "@/public/asset/Canlendar1.png"
-
+import EventModal from "./EventModal"
+import EventDetailModal from "./EventDetailModel"
 
 // Sample event data
 const eventCategories = [
@@ -35,8 +36,8 @@ const sampleEvents = [
         id: 1,
         title: "Team Meeting",
         description: "Weekly team sync to discuss project progress",
-        start: new Date(2025, 4, 15, 10, 0),
-        end: new Date(2025, 4, 15, 11, 30),
+        start: new Date(2025, 6, 11, 30, 0),
+        end: new Date(2025, 6, 11, 31, 30),
         categoryId: 1,
         location: "Conference Room A",
         attendees: ["John Doe", "Jane Smith", "Alex Johnson"],
@@ -102,352 +103,7 @@ const getFirstDayOfMonth = (year: number, month: number) => {
     return new Date(year, month, 1).getDay()
 }
 
-const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-}
 
-const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
-}
-
-// Event Modal Component
-const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) => {
-    const [title, setTitle] = useState(event?.title || "")
-    const [description, setDescription] = useState(event?.description || "")
-    const [startDate, setStartDate] = useState(event?.start ? event.start.toISOString().slice(0, 10) : "")
-    const [startTime, setStartTime] = useState(event?.start ? event.start.toTimeString().slice(0, 5) : "")
-    const [endDate, setEndDate] = useState(event?.end ? event.end.toISOString().slice(0, 10) : "")
-    const [endTime, setEndTime] = useState(event?.end ? event.end.toTimeString().slice(0, 5) : "")
-    const [categoryId, setCategoryId] = useState(event?.categoryId || 1)
-    const [location, setLocation] = useState(event?.location || "")
-    const [attendees, setAttendees] = useState(event?.attendees?.join(", ") || "")
-
-    const handleSave = () => {
-        if (!title || !startDate || !startTime || !endDate || !endTime) {
-            alert("Please fill in all required fields")
-            return
-        }
-
-        const start = new Date(`${startDate}T${startTime}`)
-        const end = new Date(`${endDate}T${endTime}`)
-
-        if (end < start) {
-            alert("End time cannot be before start time")
-            return
-        }
-
-        const updatedEvent = {
-            id: event?.id || Date.now(),
-            title,
-            description,
-            start,
-            end,
-            categoryId: Number(categoryId),
-            location,
-            attendees: attendees ? attendees.split(",").map((a: string) => a.trim()) : [],
-        }
-
-        onSave(updatedEvent)
-        onClose()
-    }
-
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fadeIn">
-            <div
-                className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden animate-scaleIn"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div
-                    className={`p-4 text-white ${isNew ? "bg-gradient-to-r from-blue-500 to-purple-500" : "bg-gradient-to-r from-blue-500 to-teal-500"
-                        }`}
-                >
-                    <h2 className="text-xl font-semibold">{isNew ? "Create New Event" : "Edit Event"}</h2>
-                </div>
-
-                <div className="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                    <div className="space-y-4">
-                        <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                                Event Title*
-                            </label>
-                            <Input
-                                id="title"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Enter event title"
-                                required
-                                className="w-full"
-                            />
-                        </div>
-
-                        <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                                Description
-                            </label>
-                            <textarea
-                                id="description"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Enter event description"
-                                rows={3}
-                                className="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Start Date*
-                                </label>
-                                <Input
-                                    id="startDate"
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    required
-                                    className="w-full"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Start Time*
-                                </label>
-                                <Input
-                                    id="startTime"
-                                    type="time"
-                                    value={startTime}
-                                    onChange={(e) => setStartTime(e.target.value)}
-                                    required
-                                    className="w-full"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
-                                    End Date*
-                                </label>
-                                <Input
-                                    id="endDate"
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    required
-                                    className="w-full"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-1">
-                                    End Time*
-                                </label>
-                                <Input
-                                    id="endTime"
-                                    type="time"
-                                    value={endTime}
-                                    onChange={(e) => setEndTime(e.target.value)}
-                                    required
-                                    className="w-full"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                                Category
-                            </label>
-                            <div className="grid grid-cols-5 gap-2">
-                                {eventCategories.map((category) => (
-                                    <button
-                                        key={category.id}
-                                        type="button"
-                                        className={`p-2 rounded-md text-xs font-medium text-center transition-all ${categoryId === category.id
-                                                ? `${category.color} text-white ring-2 ring-offset-2 ring-${category.color.split("-")[1]}-500`
-                                                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                                            }`}
-                                        onClick={() => setCategoryId(category.id)}
-                                    >
-                                        {category.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div>
-                            <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                                Location
-                            </label>
-                            <div className="relative">
-                                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <Input
-                                    id="location"
-                                    value={location}
-                                    onChange={(e) => setLocation(e.target.value)}
-                                    placeholder="Enter location"
-                                    className="w-full pl-10"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label htmlFor="attendees" className="block text-sm font-medium text-gray-700 mb-1">
-                                Attendees (comma separated)
-                            </label>
-                            <div className="relative">
-                                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <Input
-                                    id="attendees"
-                                    value={attendees}
-                                    onChange={(e) => setAttendees(e.target.value)}
-                                    placeholder="John Doe, Jane Smith"
-                                    className="w-full pl-10"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-6 flex justify-between">
-                        <div>
-                            {!isNew && (
-                                <Button
-                                    variant="outline"
-                                    className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
-                                    onClick={() => {
-                                        if (confirm("Are you sure you want to delete this event?")) {
-                                            onDelete(event.id)
-                                            onClose()
-                                        }
-                                    }}
-                                >
-                                    <Trash2 className="h-4 w-4 mr-1" /> Delete
-                                </Button>
-                            )}
-                        </div>
-                        <div className="flex gap-3">
-                            <Button variant="outline" onClick={onClose}>
-                                Cancel
-                            </Button>
-                            <Button onClick={handleSave} className="relative group overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-400 to-blue-500 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:via-purple-500 group-hover:to-blue-600 transition-all duration-300"></div>
-                                <span className="relative z-10 flex items-center justify-center text-white">
-                                    {isNew ? "Create Event" : "Save Changes"}
-                                </span>
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-// Event Details Modal Component
-const EventDetailsModal = ({ event, onClose, onEdit, onDelete }: any) => {
-    if (!event) return null
-
-    const category = eventCategories.find((c) => c.id === event.categoryId)
-
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fadeIn">
-            <div
-                className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden animate-scaleIn"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div
-                    className={`p-4 text-white relative ${category ? category.color : "bg-blue-500"
-                        } bg-gradient-to-r from-${category?.color.split("-")[1]}-500 to-${category?.color.split("-")[1]}-400`}
-                >
-                    <button
-                        onClick={onClose}
-                        className="absolute right-4 top-4 text-white/80 hover:text-white p-1 rounded-full hover:bg-white/20"
-                    >
-                        <X className="h-5 w-5" />
-                    </button>
-                    <div className="mb-1 text-white/80 text-sm">{formatDate(event.start)}</div>
-                    <h2 className="text-xl font-semibold">{event.title}</h2>
-                    <div className="flex items-center mt-2">
-                        <Clock className="h-4 w-4 mr-1 text-white/80" />
-                        <span className="text-sm">
-                            {formatTime(event.start)} - {formatTime(event.end)}
-                        </span>
-                    </div>
-                </div>
-
-                <div className="p-6">
-                    {event.description && (
-                        <div className="mb-4">
-                            <h3 className="text-sm font-medium text-gray-500 mb-1">Description</h3>
-                            <p className="text-gray-700">{event.description}</p>
-                        </div>
-                    )}
-
-                    <div className="space-y-4">
-                        <div className="flex items-start">
-                            <Tag className="h-5 w-5 mr-2 text-gray-400 mt-0.5" />
-                            <div>
-                                <h3 className="text-sm font-medium text-gray-500">Category</h3>
-                                <div
-                                    className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${category ? category.color : "bg-gray-200"
-                                        } text-white`}
-                                >
-                                    {category ? category.name : "Uncategorized"}
-                                </div>
-                            </div>
-                        </div>
-
-                        {event.location && (
-                            <div className="flex items-start">
-                                <MapPin className="h-5 w-5 mr-2 text-gray-400 mt-0.5" />
-                                <div>
-                                    <h3 className="text-sm font-medium text-gray-500">Location</h3>
-                                    <p className="text-gray-700">{event.location}</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {event.attendees && event.attendees.length > 0 && (
-                            <div className="flex items-start">
-                                <Users className="h-5 w-5 mr-2 text-gray-400 mt-0.5" />
-                                <div>
-                                    <h3 className="text-sm font-medium text-gray-500">Attendees</h3>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                        {event.attendees.map((attendee: string, index: number) => (
-                                            <span
-                                                key={index}
-                                                className="inline-block px-2 py-1 bg-gray-100 rounded-full text-xs font-medium text-gray-700"
-                                            >
-                                                {attendee}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="mt-6 flex justify-end gap-3">
-                        <Button
-                            variant="outline"
-                            className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
-                            onClick={() => {
-                                if (confirm("Are you sure you want to delete this event?")) {
-                                    onDelete(event.id)
-                                    onClose()
-                                }
-                            }}
-                        >
-                            <Trash2 className="h-4 w-4 mr-1" /> Delete
-                        </Button>
-                        <Button onClick={() => onEdit(event)} className="relative group overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-400 to-blue-500 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:via-purple-500 group-hover:to-blue-600 transition-all duration-300"></div>
-                            <span className="relative z-10 flex items-center justify-center text-white">Edit Event</span>
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
 
 // Day Cell Component
 const DayCell = ({ day, month, year, events, onEventClick, onAddEvent }: any) => {
@@ -771,7 +427,7 @@ const CalendarPage = () => {
             )}
 
             {showDetailsModal && selectedEvent && (
-                <EventDetailsModal
+                <EventDetailModal
                     event={selectedEvent}
                     onClose={() => {
                         setShowDetailsModal(false)

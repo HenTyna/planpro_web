@@ -160,15 +160,13 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                                                             Activities
                                                         </h5>
                                                         <ul className="space-y-2">
-                                                            {dest.activities.map((activity: string, actIndex: number) => (
                                                                 <li
-                                                                    key={actIndex}
+                                                                    key={index}
                                                                     className="text-sm text-blue-700 flex items-center"
                                                                 >
                                                                     <span className="inline-block w-2 h-2 rounded-full bg-blue-400 mr-3"></span>
-                                                                    {activity}
+                                                                    {dest.activities}
                                                                 </li>
-                                                            ))}
                                                         </ul>
                                                     </div>
                                                 </div>
@@ -191,15 +189,13 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                                                             Activities
                                                         </h5>
                                                         <ul className="space-y-2">
-                                                            {dest.activities.map((activity: string, actIndex: number) => (
                                                                 <li
-                                                                    key={actIndex}
+                                                                    key={index}
                                                                     className="text-sm text-purple-700 flex items-center"
                                                                 >
                                                                     <span className="inline-block w-2 h-2 rounded-full bg-purple-400 mr-3"></span>
-                                                                    {activity}
+                                                                    {dest.activities}
                                                                 </li>
-                                                            ))}
                                                         </ul>
                                                     </div>
                                                 </div>
