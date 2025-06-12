@@ -149,6 +149,28 @@ const allTasks = [
     },
 ]
 
+// Define a Task type for task-related props
+interface Task {
+    id: number;
+    title: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    color: string;
+    status: string;
+    property: string;
+    image?: string;
+}
+
+interface Column {
+    id: string;
+    title: string;
+    bgColor: string;
+    headerColor: string;
+    icon: React.ReactNode;
+    iconColor: string;
+}
+
 // Column configuration with enhanced styling
 const columns = [
     {
@@ -186,7 +208,7 @@ const columns = [
 ]
 
 // Individual Task Card Component with enhanced styling
-const TaskCard = ({ task, onTaskClick }: any) => {
+const TaskCard = ({ task, onTaskClick }: { task: Task; onTaskClick: (task: Task) => void }) => {
     const [imageError, setImageError] = useState(false)
     const [isHovered, setIsHovered] = useState(false)
 

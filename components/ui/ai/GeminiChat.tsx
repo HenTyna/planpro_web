@@ -4,8 +4,6 @@ import { v4 as uuidv4 } from "uuid"
 import ChatMessageDisplay from "./ChatMessageDisplay"
 import ChatInput from "./ChatInput"
 import {
-  ChevronLeft,
-  ChevronRight,
   Plus,
   Trash,
   Sparkles,
@@ -14,7 +12,6 @@ import {
   Star,
   Settings,
   User,
-  Search,
 } from "lucide-react"
 
 // Add a color themes array
@@ -116,12 +113,12 @@ function GeminiChat() {
         }
         setChatHistory((prev) => [...prev, newChat])
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to send message:", error)
       const errorMessage: ChatMessage = {
         id: uuidv4(),
         role: "system",
-        text: `Error: ${error.message || "Could not connect to the AI."}`,
+        text: `Error: ${error instanceof Error ? error.message : "Could not connect to the AI."}`,
       }
       setMessages((prevMessages) => [...prevMessages, errorMessage])
     } finally {

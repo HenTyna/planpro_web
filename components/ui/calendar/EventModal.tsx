@@ -1,55 +1,112 @@
 import { Button } from "@/components/shared/ui/Button"
 import { Input } from "@/components/shared/ui/Input"
-import { MapPin, Users, Trash2 } from "lucide-react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { MapPin, Trash2, Users } from "lucide-react"
 import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { OnConfirmationDelete } from "../../shared/OnConfirmationDelete"
+import { CalendarEvent } from "./CalendarPage"
 
-// Sample event data
+// API-matching event categories and enum mapping
 const eventCategories = [
-    { id: 1, name: "Meeting", color: "bg-blue-400" },
-    { id: 2, name: "Personal", color: "bg-green-400" },
-    { id: 3, name: "Deadline", color: "bg-red-400" },
-    { id: 4, name: "Travel", color: "bg-yellow-400" },
-    { id: 5, name: "Social", color: "bg-purple-400" },
+    { id: "1", name: "Meeting", color: "bg-blue-400", apiType: "meeting" },
+    { id: "2", name: "Vacation", color: "bg-green-400", apiType: "vacation" },
+    { id: "3", name: "Weekend", color: "bg-gray-400", apiType: "weekend" },
+    { id: "4", name: "Personal", color: "bg-yellow-400", apiType: "personal" },
+    { id: "5", name: "Deadline", color: "bg-red-400", apiType: "deadline" },
+    { id: "6", name: "Travel", color: "bg-purple-400", apiType: "travel" },
 ]
 
+// Zod schema matching API fields
+const eventFormSchema = z.object({
+    eventTitle: z.string().min(1, "Event title is required"),
+    description: z.string().optional(),
+    startDate: z.string().min(1, "Start date is required"),
+    endDate: z.string().min(1, "End date is required"),
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
+    location: z.string().optional(),
+    calendarType: z.string().min(1, "Category is required"), // enum string: "1", "2", etc.
+    attendees: z.string().optional(),
+})
+
+type EventFormData = z.infer<typeof eventFormSchema>
+
+interface EventModalProps {
+    event: CalendarEvent | null;
+    onClose: () => void;
+    onSave: (event: any) => void; // Accepts API shape
+    onDelete: (eventId: number) => void;
+    isNew?: boolean;
+}
+
+// Helper to map old event/category to API enum id
+function getApiCategoryId(event: CalendarEvent | null): string {
+    if (!event) return "1"
+    // Try to match by id or name
+    const found = eventCategories.find(
+        (cat) =>
+            cat.id === String(event.categoryId) ||
+            cat.name.toLowerCase() === (event as any).calendarType?.toLowerCase() ||
+            cat.name.toLowerCase() === (event as any).category?.toLowerCase()
+    )
+    return found ? found.id : "1"
+}
+
 // Event Modal Component
-const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) => {
-    const [title, setTitle] = useState(event?.title || "")
-    const [description, setDescription] = useState(event?.description || "")
-    const [startDate, setStartDate] = useState(event?.start ? event.start.toISOString().slice(0, 10) : "")
-    const [startTime, setStartTime] = useState(event?.start ? event.start.toTimeString().slice(0, 5) : "")
-    const [endDate, setEndDate] = useState(event?.end ? event.end.toISOString().slice(0, 10) : "")
-    const [endTime, setEndTime] = useState(event?.end ? event.end.toTimeString().slice(0, 5) : "")
-    const [categoryId, setCategoryId] = useState(event?.categoryId || 1)
-    const [location, setLocation] = useState(event?.location || "")
-    const [attendees, setAttendees] = useState(event?.attendees?.join(", ") || "")
+const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: EventModalProps) => {
+    if (!event) return null;
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+    // useForm setup
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        watch,
+        formState: { errors },
+    } = useForm<EventFormData>({
+        resolver: zodResolver(eventFormSchema),
+        defaultValues: {
+            eventTitle: event?.title || "",
+            description: event?.description || "",
+            startDate: event?.start ? event.start.toISOString().slice(0, 10) : "",
+            endDate: event?.end ? event.end.toISOString().slice(0, 10) : "",
+            startTime: event?.start ? event.start.toTimeString().slice(0, 5) : "",
+            endTime: event?.end ? event.end.toTimeString().slice(0, 5) : "",
+            location: event?.location || "",
+            calendarType: getApiCategoryId(event),
+            attendees: event?.attendees?.join(", ") || "",
+        },
+    })
 
-    const handleSave = () => {
-        if (!title || !startDate || !startTime || !endDate || !endTime) {
-            alert("Please fill in all required fields")
-            return
-        }
-
-        const start = new Date(`${startDate}T${startTime}`)
-        const end = new Date(`${endDate}T${endTime}`)
+    // Save handler: match API request shape
+    const onSubmit = (data: EventFormData) => {
+        // No need to combine date/time, just send as string fields
+        // But for local validation, check if end is after start
+        const start = new Date(`${data.startDate}T${data.startTime}`)
+        const end = new Date(`${data.endDate}T${data.endTime}`)
 
         if (end < start) {
             alert("End time cannot be before start time")
             return
         }
 
-        const updatedEvent = {
-            id: event?.id || Date.now(),
-            title,
-            description,
-            start,
-            end,
-            categoryId: Number(categoryId),
-            location,
-            attendees: attendees ? attendees.split(",").map((a: string) => a.trim()) : [],
+        // API expects: eventTitle, description, startDate, endDate, startTime, endTime, location, calendarType, attendees
+        const apiEvent = {
+            id: event?.id || 0,
+            eventTitle: data.eventTitle,
+            description: data.description || "",
+            startDate: data.startDate,
+            endDate: data.endDate,
+            startTime: data.startTime,
+            endTime: data.endTime,
+            location: data.location || "",
+            calendarType: data.calendarType, // "1", "2", etc.
+            attendees: data.attendees || "",
         }
 
-        onSave(updatedEvent)
+        onSave(apiEvent)
         onClose()
     }
 
@@ -66,20 +123,19 @@ const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) =>
                     <h2 className="text-xl font-semibold">{isNew ? "Create New Event" : "Edit Event"}</h2>
                 </div>
 
-                <div className="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <form onSubmit={handleSubmit(onSubmit)} className="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                     <div className="space-y-4">
                         <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="eventTitle" className="block text-sm font-medium text-gray-700 mb-1">
                                 Event Title*
                             </label>
                             <Input
-                                id="title"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
+                                id="eventTitle"
+                                {...register("eventTitle")}
                                 placeholder="Enter event title"
-                                required
                                 className="w-full"
                             />
+                            {errors.eventTitle && <p className="text-sm text-red-600">{errors.eventTitle.message}</p>}
                         </div>
 
                         <div>
@@ -88,8 +144,7 @@ const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) =>
                             </label>
                             <textarea
                                 id="description"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
+                                {...register("description")}
                                 placeholder="Enter event description"
                                 rows={3}
                                 className="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
@@ -104,11 +159,10 @@ const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) =>
                                 <Input
                                     id="startDate"
                                     type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    required
+                                    {...register("startDate")}
                                     className="w-full"
                                 />
+                                {errors.startDate && <p className="text-sm text-red-600">{errors.startDate.message}</p>}
                             </div>
                             <div>
                                 <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">
@@ -117,11 +171,10 @@ const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) =>
                                 <Input
                                     id="startTime"
                                     type="time"
-                                    value={startTime}
-                                    onChange={(e) => setStartTime(e.target.value)}
-                                    required
+                                    {...register("startTime")}
                                     className="w-full"
                                 />
+                                {errors.startTime && <p className="text-sm text-red-600">{errors.startTime.message}</p>}
                             </div>
                         </div>
 
@@ -133,11 +186,10 @@ const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) =>
                                 <Input
                                     id="endDate"
                                     type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    required
+                                    {...register("endDate")}
                                     className="w-full"
                                 />
+                                {errors.endDate && <p className="text-sm text-red-600">{errors.endDate.message}</p>}
                             </div>
                             <div>
                                 <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-1">
@@ -146,33 +198,33 @@ const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) =>
                                 <Input
                                     id="endTime"
                                     type="time"
-                                    value={endTime}
-                                    onChange={(e) => setEndTime(e.target.value)}
-                                    required
+                                    {...register("endTime")}
                                     className="w-full"
                                 />
+                                {errors.endTime && <p className="text-sm text-red-600">{errors.endTime.message}</p>}
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="calendarType" className="block text-sm font-medium text-gray-700 mb-1">
                                 Category
                             </label>
-                            <div className="grid grid-cols-5 gap-2">
+                            <div className="grid grid-cols-3 gap-2">
                                 {eventCategories.map((category) => (
                                     <button
                                         key={category.id}
                                         type="button"
-                                        className={`p-2 rounded-md text-xs font-medium text-center transition-all ${categoryId === category.id
+                                        className={`p-2 rounded-md text-xs font-medium text-center transition-all ${watch("calendarType") === category.id
                                                 ? `${category.color} text-white ring-2 ring-offset-2 ring-${category.color.split("-")[1]}-500`
                                                 : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                                             }`}
-                                        onClick={() => setCategoryId(category.id)}
+                                        onClick={() => setValue("calendarType", category.id)}
                                     >
                                         {category.name}
                                     </button>
                                 ))}
                             </div>
+                            {errors.calendarType && <p className="text-sm text-red-600">{errors.calendarType.message}</p>}
                         </div>
 
                         <div>
@@ -183,8 +235,7 @@ const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) =>
                                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <Input
                                     id="location"
-                                    value={location}
-                                    onChange={(e) => setLocation(e.target.value)}
+                                    {...register("location")}
                                     placeholder="Enter location"
                                     className="w-full pl-10"
                                 />
@@ -199,8 +250,7 @@ const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) =>
                                 <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <Input
                                     id="attendees"
-                                    value={attendees}
-                                    onChange={(e) => setAttendees(e.target.value)}
+                                    {...register("attendees")}
                                     placeholder="John Doe, Jane Smith"
                                     className="w-full pl-10"
                                 />
@@ -215,10 +265,7 @@ const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) =>
                                     variant="outline"
                                     className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
                                     onClick={() => {
-                                        if (confirm("Are you sure you want to delete this event?")) {
-                                            onDelete(event.id)
-                                            onClose()
-                                        }
+                                        setShowConfirmDelete(true)
                                     }}
                                 >
                                     <Trash2 className="h-4 w-4 mr-1" /> Delete
@@ -229,7 +276,7 @@ const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) =>
                             <Button variant="outline" onClick={onClose}>
                                 Cancel
                             </Button>
-                            <Button onClick={handleSave} className="relative group overflow-hidden">
+                            <Button type="submit" className="relative group overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-400 to-blue-500 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:via-purple-500 group-hover:to-blue-600 transition-all duration-300"></div>
                                 <span className="relative z-10 flex items-center justify-center text-white">
                                     {isNew ? "Create Event" : "Save Changes"}
@@ -237,8 +284,22 @@ const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: any) =>
                             </Button>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
+            {
+                showConfirmDelete && (
+                    <OnConfirmationDelete
+                        onClose={() => setShowConfirmDelete(false)}
+                        onConfirm={() => {
+                            onDelete(event?.id || 0)
+                            onClose()
+                        }}
+                        title={event?.title || ""}
+                        show={showConfirmDelete}
+                        description={`Are you sure you want to delete this event? This action cannot be undone.`}
+                    />
+                )
+            }
         </div>
     )
 }

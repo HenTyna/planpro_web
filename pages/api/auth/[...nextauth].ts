@@ -21,12 +21,17 @@ export const session = ({ session, token }: { session: Session; token: JWT }): P
             error: new Error("Refresh token has expired. Please log in again to get a new refresh token."),
         });
     }
-    const accessTokenData = JSON.parse(atob(token.token?.split(".")?.at(1)!));
+    const tokenPart = token.token?.split(".")?.at(1);
+    if (!tokenPart) {
+        return Promise.reject({
+            error: new Error("Invalid token format."),
+        });
+    }
+    const accessTokenData = JSON.parse(atob(tokenPart));
 
     session.user = accessTokenData;
     token.accessTokenExpires = accessTokenData.exp;
 
-    // @ts-ignore
     session.token = token?.token;
 
     return Promise.resolve(session);
@@ -42,11 +47,11 @@ export const authOption: NextAuthOptions = ({
                 user_name: {},
                 password: {}
             },
-            async authorize(credentials, req) {
+            async authorize(credentials) {
 
                 const authRequest: AuthRequest = {
-                    user_name: credentials?.user_name!,
-                    password: PasswordUtils.encrypt(credentials?.password!),
+                    user_name: credentials?.user_name ?? "",
+                    password: PasswordUtils.encrypt(credentials?.password ?? ""),
                 }
                 const response = await authService.login(authRequest)
                     .catch(err => err);

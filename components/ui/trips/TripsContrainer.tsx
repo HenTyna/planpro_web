@@ -13,6 +13,7 @@ import TripModal from "./TripsModal"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { tripsService } from "@/service/trips.service"
 import toast from "react-hot-toast"
+import LandingSpinner from "@/components/shared/LandingSpinner"
 
 // Types matching API structure
 interface Destination {
@@ -73,12 +74,6 @@ const tripStatuses: TripStatus[] = [
   { id: "Cancelled", name: "Cancelled", color: "bg-gray-400" },
 ]
 
-// Loading Component
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-[400px]">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-  </div>
-)
 
 // Error Component
 const ErrorMessage = ({ message, onRetry }: { message: string; onRetry?: () => void }) => (
@@ -259,7 +254,7 @@ const TripPage = () => {
     return (
       <div className="bg-gray-50 max-h-screen overflow-auto">
         <div className="mx-auto p-4">
-          <LoadingSpinner />
+          <LandingSpinner />
         </div>
       </div>
     )

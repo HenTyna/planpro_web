@@ -65,3 +65,9 @@ export const formatDateV2 = (date?: string | Date): string => {
 export const formatTime = (date: Date) => {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 }
+
+export const formatDateToYYYYMMDD = (date: string) => {
+  return moment(date, "YYYY-MM-DD").format("YYYYMMDDHHmmss")
+}
+
+

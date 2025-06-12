@@ -1,12 +1,12 @@
 import {createContext, Dispatch, useContext} from "react";
 
 type StateType = {
-    value: any;
+    value: unknown; // TODO: Specify a more precise type
 }
 
 type ActionType = {
     type: string;
-    value: any;
+    value: unknown; // TODO: Specify a more precise type
 };
 
 type FormContextType = {

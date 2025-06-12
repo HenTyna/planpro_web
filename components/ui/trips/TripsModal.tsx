@@ -2,8 +2,8 @@ import type React from "react"
 
 import { Button } from "@/components/shared/ui/Button"
 import { Input } from "@/components/shared/ui/Input"
-import { Calendar, Globe, MapPin, Plane, Plus, Trash2, Users, Wallet, X } from "lucide-react"
-import { useForm, useFieldArray, Controller } from "react-hook-form"
+import { Calendar, Globe, Info, MapPin, Plane, Plus, Trash2, Users, Wallet } from "lucide-react"
+import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useRef, useState } from "react"
@@ -11,6 +11,8 @@ import { profileService } from "@/service/profile.service"
 import toast from "react-hot-toast"
 import { useMutation } from "@tanstack/react-query"
 import { tripsService } from "@/service/trips.service"
+import { Switch } from "@/components/shared/ui/swtich"
+import { formatDateToYYYYMMDD } from "@/utils/dateformat"
 
 const tripCategories = [
     { id: 1, name: "Business", color: "bg-blue-400", icon: Wallet },
@@ -50,13 +52,14 @@ const tripFormSchema = z
         destinations: z
             .array(
                 z.object({
-                    destination_id: z.optional(z.string()),
+                    destination_id: z.optional(z.union([z.string(), z.number()])),
                     id: z.string(),
                     destinationName: z.string().min(1, "Destination name is required"),
                     days: z.number().min(1, "Days must be at least 1"),
                     activities: z.string().min(1, "Activity description is required")
                 }),
-            )
+            ),
+        isCalendarEvent: z.boolean().optional(),
     })
     .refine(
         (data) => {
@@ -73,10 +76,10 @@ const tripFormSchema = z
 type TripFormData = z.infer<typeof tripFormSchema>
 
 interface TripModalProps {
-    trip?: any
-    onClose: () => void
-    onSave: (trip: any) => void
-    isNew?: boolean
+    trip?: Record<string, any>; // TODO: Replace with a specific Trip type
+    onClose: () => void;
+    onSave: (trip: any) => void; // TODO: Replace 'any' with a specific Trip type
+    isNew?: boolean;
 }
 
 const TripModal = ({ trip, onClose, onSave, isNew = false }: TripModalProps) => {
@@ -111,8 +114,8 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: TripModalProps) => 
             travelers: trip?.travelers || "",
             imageUrl: trip?.imageUrl || "",
             // Initialize destinations with empty array if no data
-            destinations: destData?.length ? destData.map((dest: any) => ({
-                destination_id: typeof dest.destination_id === "number" ? dest.destination_id : undefined,
+            destinations: destData?.length ? destData.map((dest: Record<string, any>) => ({
+                destination_id: typeof dest.destination_id === "string" ? dest.destination_id : undefined,
                 id: dest.id,
                 destinationName: dest.destination_name,
                 days: dest.days,
@@ -122,8 +125,10 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: TripModalProps) => 
                 destinationName: "",
                 days: 1,
                 activities: "",
-                destination_id: 0,
-            }]
+                // destination_id: 0,
+            }],
+            isCalendarEvent: false,
+
         },
     })
 
@@ -152,7 +157,7 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: TripModalProps) => 
 
     //mutation remove destination
     const { mutate: removeDestinationMutation } = useMutation({
-        mutationFn: (destinationId: any) => tripsService.removeDestination(destinationId),
+        mutationFn: (destinationId: string) => tripsService.removeDestination(destinationId),
         onSuccess: () => {
             toast.success("Destination has been removed")
         },
@@ -161,11 +166,10 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: TripModalProps) => 
         }
     })
     
-    const handleRemoveDestination = (index: any) => {
+    const handleRemoveDestination = (index: number) => {
         if (destinationFields.length > 1) {
-            // Now destinationFields[index].destination_id is always present (may be empty string if new)
             if (destinationFields[index].destination_id) {
-                removeDestinationMutation(destinationFields[index].destination_id)
+                removeDestinationMutation(String(destinationFields[index].destination_id))
             }
             removeDestination(index)
         }
@@ -193,6 +197,8 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: TripModalProps) => 
         const updatedTrip = {
             id: trip?.id,
             ...data,
+            startDate: formatDateToYYYYMMDD(data.startDate),
+            endDate: formatDateToYYYYMMDD(data.endDate),
             imageUrl,
         }
 
@@ -201,12 +207,12 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: TripModalProps) => 
         onClose()
     }
 
-    const handleImageUpload = async (e: any) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
             const imageUrl = URL.createObjectURL(file)
             setFileImage(file)
-            setValue("imageUrl", imageUrl)
+            setValue("imageUrl", imageUrl as any)
         }
     }
 
@@ -539,6 +545,45 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: TripModalProps) => 
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                        <div className="md:col-span-2 flex flex-col gap-2 bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 rounded-xl p-4 shadow-inner border border-blue-100">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-blue-700 flex items-center">
+                                        <Info className="h-4 w-4 mr-1 text-blue-400" />
+                                        Add to Calendar
+                                    </span>
+                                    <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-100 text-xs text-blue-600 font-medium animate-pulse">
+                                        New!
+                                    </span>
+                                </div>
+                                <Switch
+                                    checked={watch("isCalendarEvent")}
+                                    onCheckedChange={() => setValue("isCalendarEvent", !watch("isCalendarEvent"))}
+                                    className="scale-110"
+                                />
+                            </div>
+                            <div className="mt-2 text-xs text-gray-600 flex items-center gap-2">
+                                <span>
+                                    {watch("isCalendarEvent")
+                                        ? "This trip will be added to your calendar and you'll get reminders."
+                                        : "Enable to sync this trip with your calendar and receive smart notifications."}
+                                </span>
+                                {watch("isCalendarEvent") && (
+                                    <span className="inline-flex items-center gap-1 text-green-600 font-medium">
+                                        <svg className="h-4 w-4 animate-bounce" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
+                                        Synced!
+                                    </span>
+                                )}
+                            </div>
+                            {watch("isCalendarEvent") && (
+                                <div className="mt-3 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg p-2">
+                                    <svg className="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M8 7V3M16 7V3M4 11h16M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    <span className="text-xs text-blue-700">
+                                        Calendar event will include trip title, dates, and location.
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
 

@@ -7,7 +7,7 @@ import { Path } from "@/utils/enum";
 import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 
-const useSignUpMutation = (setError: any) => {
+const useSignUpMutation = (setError: unknown) => {
     const router = useRouter();
     // const identification = useIdentification();
 
@@ -25,7 +25,11 @@ const useSignUpMutation = (setError: any) => {
                 })
 
                 if (result?.ok) {
-                    router.push(result?.url!)
+                    if (result.url) {
+                        router.push(result.url)
+                    } else {
+                        toast.error('No redirect URL returned')
+                    }
                     return;
                 }
 
@@ -35,14 +39,15 @@ const useSignUpMutation = (setError: any) => {
                 console.log('error', e)
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             // Check if the error is related to a duplicate user_id
 
-            setError('user_id', {
-                type: 'manual',
-                message: (error?.message || 'Something went wrong')
-            });
-
+            if (setError && typeof setError === 'function') {
+                setError('user_id', {
+                    type: 'manual',
+                    message: (error && typeof error === 'object' && 'message' in error) ? (error as { message?: string }).message || 'Something went wrong' : 'Something went wrong'
+                });
+            }
         }
 
     });

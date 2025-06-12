@@ -20,4 +20,4 @@ const ForgotPassword = () => {
 }
 
 export default ForgotPassword
-ForgotPassword.getLayout = (page: any) => page;
+ForgotPassword.getLayout = (page: React.ReactElement) => page;

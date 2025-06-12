@@ -1,6 +1,6 @@
 import { useFetchProfile } from "@/lib/hooks/useFetchProfile";
 import profile from "@/public/asset/profile.jpg";
-import { Bell, ChevronDown, Globe, HelpCircle, LogOut, Menu, Moon, Search, Settings, Sun, UserIcon } from 'lucide-react';
+import { Bell, ChevronDown, Globe, HelpCircle, LogOut, Menu, Moon, Search, Sun, UserIcon } from 'lucide-react';
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import ProfileContrainer from "../profile/ProfileContrainer";
@@ -79,7 +79,7 @@ const NavBar: React.FC<NavBarProps> = ({
     }
   }
   if (isLoading) {
-    return <div>Loading...</div>;
+    // return <div>Loading...</div>;
   }
 
   if (isError) {

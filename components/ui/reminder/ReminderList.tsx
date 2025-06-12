@@ -1,4 +1,3 @@
-
 import type React from "react"
 
 import { useState, useEffect } from "react"
@@ -962,14 +961,6 @@ export default function ReminderPage() {
     if (reminder) {
       setCurrentReminder(reminder)
       setIsEditModalOpen(true)
-    }
-  }
-
-  const handleViewReminder = (id: string) => {
-    const reminder = reminders.find((r) => r.id === id)
-    if (reminder) {
-      setCurrentReminder(reminder)
-      setIsDetailModalOpen(true)
     }
   }
 

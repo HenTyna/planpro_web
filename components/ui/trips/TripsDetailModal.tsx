@@ -7,7 +7,7 @@ import { ConfirmationType } from "@/utils/enum"
 import { useState } from "react"
 import dynamic from "next/dynamic"
 
-const OnConfirmationDelete = dynamic(() => import('@/components/ui/trips/OnConfirmationDelete').then(mod => mod.OnConfirmationDelete), {
+const OnConfirmationDelete = dynamic(() => import('@/components/shared/OnConfirmationDelete').then(mod => mod.OnConfirmationDelete), {
     ssr: false,
   })
 
@@ -279,13 +279,14 @@ const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
                 showDelete && (
                     <OnConfirmationDelete
                         show={showDelete}
-                        type={ConfirmationType.DELETE}
                         onConfirm={() => {
                             onDelete?.(trip?.id); 
                             setShowDelete(false);
                             onClose();
                           }}
                         onClose={() => setShowDelete(false)}
+                        title={trip?.title || ""}
+                        description={`Are you sure you want to delete this trip? This action cannot be undone.`}
                     />
                 )
             }

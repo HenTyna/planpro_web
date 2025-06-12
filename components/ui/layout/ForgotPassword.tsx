@@ -1,4 +1,3 @@
-"use client"
 
 import type React from "react"
 
@@ -83,7 +82,7 @@ export default function ForgotPasswordPage() {
                                 <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-green-400 to-teal-400 bg-clip-text text-transparent">
                                     Reset your password
                                 </h1>
-                                <p className="text-gray-600">We'll send you a link to reset your password</p>
+                                <p className="text-gray-600">We&apos;ll send you a link to reset your password</p>
                             </div>
 
                             {error && (
@@ -106,7 +105,7 @@ export default function ForgotPasswordPage() {
                                             <div>
                                                 <p className="font-medium text-lg">Reset link sent!</p>
                                                 <p className="mt-1 text-sm">
-                                                    Check your email for a link to reset your password. If it doesn't appear within a few minutes,
+                                                    Check your email for a link to reset your password. If it doesn&apos;t appear within a few minutes,
                                                     check your spam folder.
                                                 </p>
                                             </div>

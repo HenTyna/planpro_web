@@ -1,16 +1,14 @@
-
 import type React from "react"
 
-import { useState, useEffect, useReducer } from "react"
-import Link from "next/link"
-import { Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight, Github, Twitter, User } from "lucide-react"
-import { Input } from "@/components/shared/ui/Input"
 import { Button } from "@/components/shared/ui/Button"
-import {toast} from "react-hot-toast";
-import {signIn, useSession} from "next-auth/react";
+import { Input } from "@/components/shared/ui/Input"
 import { Path } from "@/utils/enum"
+import { ArrowRight, Eye, EyeOff, Github, Lock, Sparkles, Twitter, User } from "lucide-react"
+import { signIn } from "next-auth/react"
+import Link from "next/link"
 import { useRouter } from "next/router"
-import { PasswordUtils } from "@/utils/PasswordUtils"
+import { useEffect, useReducer, useState } from "react"
+import { toast } from "react-hot-toast"
 export default function LoginPage() {
     const router = useRouter()
     const [showPassword, setShowPassword] = useState(false)

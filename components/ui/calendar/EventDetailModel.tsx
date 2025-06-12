@@ -1,22 +1,34 @@
+import { OnConfirmationDelete } from "@/components/shared/OnConfirmationDelete"
 import { Button } from "@/components/shared/ui/Button"
 import { formatDate, formatTime } from "@/utils/dateformat"
-import { MapPin, Users, Trash2, X, Clock, Tag } from "lucide-react"
-
-
-// Sample event data
+import { Clock, MapPin, Tag, Trash2, Users, X } from "lucide-react"
+import { useState } from "react"
+import { CalendarEvent } from "./CalendarPage"
+// Event categories should use string IDs to match event.categoryId type
 const eventCategories = [
-    { id: 1, name: "Meeting", color: "bg-blue-400" },
-    { id: 2, name: "Personal", color: "bg-green-400" },
-    { id: 3, name: "Deadline", color: "bg-red-400" },
-    { id: 4, name: "Travel", color: "bg-yellow-400" },
-    { id: 5, name: "Social", color: "bg-purple-400" },
+    { id: "1", name: "Meeting", color: "bg-blue-400" },
+    { id: "2", name: "Personal", color: "bg-green-400" },
+    { id: "3", name: "Deadline", color: "bg-red-400" },
+    { id: "4", name: "Travel", color: "bg-yellow-400" },
+    { id: "5", name: "Social", color: "bg-purple-400" },
 ]
 
-// Event Details Modal Component
-const EventDetailModel = ({ event, onClose, onEdit, onDelete }: any) => {
-    if (!event) return null
+type EventDetailModelProps = {
+    event: CalendarEvent;
+    onClose: () => void;
+    onEdit: (event: CalendarEvent) => void;
+    onDelete: (eventId: number) => void;
+}
 
-    const category = eventCategories.find((c) => c.id === event.categoryId)
+// Event Details Modal Component
+const EventDetailModel = ({ event, onClose, onEdit, onDelete }: EventDetailModelProps) => {
+    if (!event) return null
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+    // Ensure categoryId is compared as string
+    const category = eventCategories.find((c) => c.id === String(event.categoryId))
+
+    // Extract color name for gradient if available
+    const colorName = category?.color?.split("-")[1] || "blue"
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fadeIn">
@@ -26,7 +38,7 @@ const EventDetailModel = ({ event, onClose, onEdit, onDelete }: any) => {
             >
                 <div
                     className={`p-4 text-white relative ${category ? category.color : "bg-blue-500"
-                        } bg-gradient-to-r from-${category?.color.split("-")[1]}-500 to-${category?.color.split("-")[1]}-400`}
+                        } bg-gradient-to-r from-${colorName}-500 to-${colorName}-400`}
                 >
                     <button
                         onClick={onClose}
@@ -101,10 +113,7 @@ const EventDetailModel = ({ event, onClose, onEdit, onDelete }: any) => {
                             variant="outline"
                             className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
                             onClick={() => {
-                                if (confirm("Are you sure you want to delete this event?")) {
-                                    onDelete(event.id)
-                                    onClose()
-                                }
+                                setShowConfirmDelete(true)
                             }}
                         >
                             <Trash2 className="h-4 w-4 mr-1" /> Delete
@@ -116,6 +125,20 @@ const EventDetailModel = ({ event, onClose, onEdit, onDelete }: any) => {
                     </div>
                 </div>
             </div>
+            {
+                showConfirmDelete && (
+                    <OnConfirmationDelete
+                        onClose={() => setShowConfirmDelete(false)}
+                        onConfirm={() => {
+                            onDelete(event?.id || 0)
+                            onClose()
+                        }}
+                        show={showConfirmDelete}
+                        title="Event"
+                        description="Are you sure you want to delete this event?"
+                    />
+                )
+            }
         </div>
     )
 }

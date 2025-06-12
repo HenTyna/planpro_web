@@ -20,4 +20,4 @@ const register = () => {
 }
 
 export default register
-register.getLayout = (page: any) => page;
+register.getLayout = (page: React.ReactElement) => page;

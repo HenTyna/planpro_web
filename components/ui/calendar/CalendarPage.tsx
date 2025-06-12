@@ -1,98 +1,100 @@
-"use client"
 
-import { useState, useEffect } from "react"
-import Image from "next/image"
+import { Button } from "@/components/shared/ui/Button"
+import useFetchCalendar from "@/lib/hooks/useFetchCalendar"
+import CalendarPic from "@/public/asset/Canlendar1.png"
+import { calendarService } from "@/service/calendar.service"
 import { formatTime } from "@/utils/dateformat"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
     Calendar,
     CalendarDays,
     ChevronLeft,
     ChevronRight,
-    Clock,
-    MapPin,
     Plus,
-    Tag,
-    Trash2,
-    Users,
-    X,
 } from "lucide-react"
-import { Input } from "@/components/shared/ui/Input"
-import { Button } from "@/components/shared/ui/Button"
-import CalendarPic from "@/public/asset/Canlendar1.png"
-import EventModal from "./EventModal"
+import Image from "next/image"
+import { useEffect, useMemo, useState } from "react"
+import toast from "react-hot-toast"
 import EventDetailModal from "./EventDetailModel"
+import EventModal from "./EventModal"
 
-// Sample event data
+// Event categories mapping (API calendarType is string, so use string keys)
 const eventCategories = [
-    { id: 1, name: "Meeting", color: "bg-blue-400" },
-    { id: 2, name: "Personal", color: "bg-green-400" },
-    { id: 3, name: "Deadline", color: "bg-red-400" },
-    { id: 4, name: "Travel", color: "bg-yellow-400" },
-    { id: 5, name: "Social", color: "bg-purple-400" },
+    { id: "1", name: "Meeting", color: "bg-blue-400" },
+    { id: "2", name: "Personal", color: "bg-green-400" },
+    { id: "3", name: "Deadline", color: "bg-red-400" },
+    { id: "4", name: "Travel", color: "bg-yellow-400" },
+    { id: "5", name: "Social", color: "bg-purple-400" },
+    { id: "6", name: "Workshop", color: "bg-pink-400" }, // Example for calendarType: "6"
 ]
 
-const sampleEvents = [
-    {
-        id: 1,
-        title: "Team Meeting",
-        description: "Weekly team sync to discuss project progress",
-        start: new Date(2025, 6, 11, 30, 0),
-        end: new Date(2025, 6, 11, 31, 30),
-        categoryId: 1,
-        location: "Conference Room A",
-        attendees: ["John Doe", "Jane Smith", "Alex Johnson"],
-    },
-    {
-        id: 2,
-        title: "Project Deadline",
-        description: "Final submission for Q2 project",
-        start: new Date(2025, 4, 20, 9, 0),
-        end: new Date(2025, 4, 20, 18, 0),
-        categoryId: 3,
-        location: "",
-        attendees: [],
-    },
-    {
-        id: 3,
-        title: "Lunch with Sarah",
-        description: "Catch up over lunch",
-        start: new Date(2025, 4, 17, 12, 30),
-        end: new Date(2025, 4, 17, 13, 30),
-        categoryId: 5,
-        location: "Cafe Bistro",
-        attendees: ["Sarah Williams"],
-    },
-    {
-        id: 4,
-        title: "Dentist Appointment",
-        description: "Regular checkup",
-        start: new Date(2025, 4, 22, 14, 0),
-        end: new Date(2025, 4, 22, 15, 0),
-        categoryId: 2,
-        location: "Dental Clinic",
-        attendees: [],
-    },
-    {
-        id: 5,
-        title: "Flight to New York",
-        description: "Business trip for client meeting",
-        start: new Date(2025, 4, 25, 8, 0),
-        end: new Date(2025, 4, 25, 11, 0),
-        categoryId: 4,
-        location: "Airport Terminal B",
-        attendees: [],
-    },
-    {
-        id: 6,
-        title: "Client Presentation",
-        description: "Presenting new product features",
-        start: new Date(2025, 4, 26, 13, 0),
-        end: new Date(2025, 4, 26, 15, 0),
-        categoryId: 1,
-        location: "Client Office",
-        attendees: ["Client Team", "Marketing Team"],
-    },
-]
+// Helper: Parse "YYYY-MM-DD" or "YYYYMMDD" to Date
+function parseDateTime(dateStr: string, timeStr?: string) {
+    if (!dateStr) return new Date();
+    let year, month, day;
+    // Support both "YYYY-MM-DD" and "YYYYMMDD"
+    if (dateStr.includes("-")) {
+        // "YYYY-MM-DD"
+        const [y, m, d] = dateStr.split("-");
+        year = parseInt(y, 10);
+        month = parseInt(m, 10) - 1;
+        day = parseInt(d, 10);
+    } else {
+        // "YYYYMMDD"
+        year = parseInt(dateStr.slice(0, 4), 10);
+        month = parseInt(dateStr.slice(4, 6), 10) - 1;
+        day = parseInt(dateStr.slice(6, 8), 10);
+    }
+    let hour = 0, min = 0, sec = 0;
+    if (timeStr && timeStr.length === 6) {
+        hour = parseInt(timeStr.slice(0, 2), 10)
+        min = parseInt(timeStr.slice(2, 4), 10)
+        sec = parseInt(timeStr.slice(4, 6), 10)
+    }
+    return new Date(year, month, day, hour, min, sec)
+}
+
+// Map API event to CalendarEvent
+function mapApiEvent(apiEvent: any): CalendarEvent {
+    return {
+        id: apiEvent.id,
+        title: apiEvent.eventTitle || "",
+        description: apiEvent.description || "",
+        start: parseDateTime(apiEvent.startDate, apiEvent.startTime),
+        end: parseDateTime(apiEvent.endDate, apiEvent.endTime),
+        categoryId: apiEvent.calendarType ? String(apiEvent.calendarType) : "1",
+        location: apiEvent.location || "",
+        attendees: typeof apiEvent.attendees === "string"
+            ? apiEvent.attendees.split(",").map((a: string) => a.trim()).filter(Boolean)
+            : Array.isArray(apiEvent.attendees) ? apiEvent.attendees : [],
+        status: apiEvent.status,
+        raw: apiEvent,
+    }
+}
+
+// Define a type for calendar events
+export interface CalendarEvent {
+    id: number;
+    title: string;
+    description: string;
+    start: Date;
+    end: Date;
+    categoryId: string; // changed to string to match API
+    location: string;
+    attendees: string[];
+    status?: any;
+    raw?: any;
+    [key: string]: any;
+}
+
+interface DayCellProps {
+    day: number;
+    month: number;
+    year: number;
+    events: CalendarEvent[];
+    onEventClick: (event: CalendarEvent) => void;
+    onAddEvent: (date: Date) => void;
+}
 
 // Helper functions
 const getDaysInMonth = (year: number, month: number) => {
@@ -103,15 +105,13 @@ const getFirstDayOfMonth = (year: number, month: number) => {
     return new Date(year, month, 1).getDay()
 }
 
-
-
 // Day Cell Component
-const DayCell = ({ day, month, year, events, onEventClick, onAddEvent }: any) => {
+const DayCell = ({ day, month, year, events, onEventClick, onAddEvent }: DayCellProps) => {
     const isToday = day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()
     const isCurrentMonth = true // For now, we're only showing current month
 
     // Filter events for this day
-    const dayEvents = events.filter((event: any) => {
+    const dayEvents = events.filter((event: CalendarEvent) => {
         const eventDate = new Date(event.start)
         return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year
     })
@@ -136,7 +136,7 @@ const DayCell = ({ day, month, year, events, onEventClick, onAddEvent }: any) =>
                 </button>
             </div>
             <div className="mt-1 space-y-1 max-h-[80px] overflow-y-auto custom-scrollbar">
-                {dayEvents.map((event: any) => {
+                {dayEvents.map((event: CalendarEvent) => {
                     const category = eventCategories.find((c) => c.id === event.categoryId)
                     return (
                         <div
@@ -156,14 +156,36 @@ const DayCell = ({ day, month, year, events, onEventClick, onAddEvent }: any) =>
 
 // Main Calendar Component
 const CalendarPage = () => {
+    const { data: calendar, isLoading, error } = useFetchCalendar()
+    // For debug: log the raw data
+    // console.log("calendar", calendar?.data?.data)
+
+    // Map API data to CalendarEvent[]
+    const mappedEvents = useMemo(() => {
+        // Accept both array and object, and also support direct array (for local test)
+        let arr: any[] = [];
+        if (calendar?.data?.data) {
+            arr = Array.isArray(calendar.data.data) ? calendar.data.data : [calendar.data.data];
+        } else if (Array.isArray(calendar?.data)) {
+            arr = calendar.data;
+        }
+        return arr.map(mapApiEvent);
+    }, [calendar])
+    
+    const queryClient = useQueryClient()
     const [currentDate, setCurrentDate] = useState(new Date())
-    const [events, setEvents] = useState(sampleEvents)
-    const [selectedEvent, setSelectedEvent] = useState<any>(null)
+    const [events, setEvents] = useState<CalendarEvent[]>([])
+    const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
     const [showEventModal, setShowEventModal] = useState(false)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
-    const [newEvent, setNewEvent] = useState<any>(null)
+    const [newEvent, setNewEvent] = useState<CalendarEvent | null>(null)
     const [view, setView] = useState("month") // month, week, day
     const [mounted, setMounted] = useState(false)
+
+    // Sync events state with mappedEvents from API
+    useEffect(() => {
+        setEvents(mappedEvents)
+    }, [mappedEvents])
 
     useEffect(() => {
         setMounted(true)
@@ -182,38 +204,103 @@ const CalendarPage = () => {
         setCurrentDate(new Date())
     }
 
+    //mutation create calendar
+    const createCalendarMutation = useMutation({
+        mutationFn: (data: CalendarEvent) => calendarService.createCalendar(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["calendar"] })
+            toast.success("Calendar created successfully")
+        },
+        onError: (error) => {
+            console.log(error)
+            toast.error("Failed to create calendar")
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["calendar"] })
+        }
+    })
+
+    //mutation update calendar
+    const updateCalendarMutation = useMutation({
+        mutationFn: (data: CalendarEvent) => calendarService.updateCalendar(data.id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["calendar"] })
+            toast.success("Calendar updated successfully")
+        },
+        onError: (error) => {
+            console.log(error)
+            toast.error("Failed to update calendar")
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["calendar"] })
+        }
+    })
+
+    //mutation delete calendar
+    const deleteCalendarMutation = useMutation({
+        mutationFn: (eventId: number) => calendarService.deleteCalendar(eventId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["calendar"]})
+            toast.success("Calendar deleted successfully")
+        },
+        onError: (error) => {
+            console.log(error)
+            toast.error("Failed to delete calendar")
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["calendar"] })
+        }
+    })
+
+    //get calendar by id
+    const getCalendarById = useQuery({
+        queryKey: ["calendar", selectedEvent?.id],
+        queryFn: () => calendarService.getCalendarById(selectedEvent?.id || 0),
+        enabled: !!selectedEvent?.id,
+    })
+
     const handleAddEvent = (date: Date) => {
-        const newEventTemplate = {
+        const newEventTemplate: CalendarEvent = {
+            id: Date.now(),
+            title: '',
+            description: '',
             start: date,
             end: new Date(date.getTime() + 60 * 60 * 1000), // 1 hour later
-        }
-        setNewEvent(newEventTemplate)
-        setShowEventModal(true)
+            categoryId: "1",
+            location: '',
+            attendees: [],
+        };
+        setNewEvent(newEventTemplate);
+        setShowEventModal(true);
     }
 
-    const handleSaveEvent = (event: any) => {
-        if (event.id && events.some((e) => e.id === event.id)) {
+    const handleSaveEvent = (event: CalendarEvent) => {
+        if (event.id && events.some((e: CalendarEvent) => e.id === event.id)) {
             // Update existing event
-            setEvents(events.map((e) => (e.id === event.id ? event : e)))
+            setEvents(events.map((e: CalendarEvent) => (e.id === event.id ? event : e)))
+            updateCalendarMutation.mutate(event)
         } else {
             // Add new event
             setEvents([...events, event])
+            createCalendarMutation.mutate(event)
         }
     }
 
     const handleDeleteEvent = (eventId: number) => {
-        setEvents(events.filter((e) => e.id !== eventId))
+        setEvents(events.filter((e: CalendarEvent) => e.id !== eventId));
+        deleteCalendarMutation.mutate(eventId)
     }
 
-    const handleEventClick = (event: any) => {
+    const handleEventClick = (event: CalendarEvent) => {
         setSelectedEvent(event)
         setShowDetailsModal(true)
     }
 
-    const handleEditEvent = (event: any) => {
+    const handleEditEvent = (event: CalendarEvent) => {
         setSelectedEvent(event)
         setShowDetailsModal(false)
         setShowEventModal(true)
+        getCalendarById.refetch()
     }
 
     // Calendar grid generation
@@ -226,7 +313,6 @@ const CalendarPage = () => {
 
         // Create calendar grid
         const calendarDays = []
-        const dayCount = 1
 
         // Add weekday headers
         for (let i = 0; i < 7; i++) {
@@ -265,6 +351,40 @@ const CalendarPage = () => {
 
     if (!mounted) return null
 
+    // Helper to safely get month and year from event.start
+    const getEventMonth = (event: CalendarEvent) => {
+        if (!event || !event.start) return null;
+        let dateObj: Date;
+        if (event.start instanceof Date) {
+            dateObj = event.start;
+        } else {
+            // Try to parse if it's a string
+            try {
+                dateObj = new Date(event.start);
+                if (isNaN(dateObj.getTime())) return null;
+            } catch {
+                return null;
+            }
+        }
+        return dateObj.getMonth();
+    };
+
+    const getEventYear = (event: CalendarEvent) => {
+        if (!event || !event.start) return null;
+        let dateObj: Date;
+        if (event.start instanceof Date) {
+            dateObj = event.start;
+        } else {
+            try {
+                dateObj = new Date(event.start);
+                if (isNaN(dateObj.getTime())) return null;
+            } catch {
+                return null;
+            }
+        }
+        return dateObj.getFullYear();
+    };
+
     return (
         <div className="bg-gray-50 overflow-y-auto custom-scrollbar">
             <div className=" mx-auto p-4">
@@ -293,9 +413,16 @@ const CalendarPage = () => {
                                         <span className="text-purple-500 font-semibold">
                                             {
                                                 events.filter(
-                                                    (e) =>
-                                                        e.start.getMonth() === currentDate.getMonth() &&
-                                                        e.start.getFullYear() === currentDate.getFullYear(),
+                                                    (e: CalendarEvent) => {
+                                                        const month = getEventMonth(e);
+                                                        const year = getEventYear(e);
+                                                        return (
+                                                            month !== null &&
+                                                            year !== null &&
+                                                            month === currentDate.getMonth() &&
+                                                            year === currentDate.getFullYear()
+                                                        );
+                                                    }
                                                 ).length
                                             }
                                         </span>

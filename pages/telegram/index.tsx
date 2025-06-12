@@ -1,7 +1,4 @@
-
 import SetUpTL from '@/components/ui/telegram/SetUpTL';
-import TelegramIntegration from '@/components/ui/telegram/TelegramIntergrate';
-import TelegramFeatureSetup from '@/components/ui/telegram/TelegramSetUp';
 import Head from 'next/head';
 import React from 'react'
 

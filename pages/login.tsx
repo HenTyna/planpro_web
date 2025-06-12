@@ -20,4 +20,4 @@ const Login = () => {
 }
 
 export default Login;
-Login.getLayout = (page: any) => page;
+Login.getLayout = (page: React.ReactElement) => page;

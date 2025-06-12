@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -34,15 +33,15 @@ export default function RegisterPage() {
     const {
         register,
         handleSubmit,
-        formState: { errors, isSubmitting },
+        formState: { isSubmitting },
         watch,
         setError: setFormError,
     } = useForm<RegisterFormValues>({
         mode: "onChange",
         defaultValues: {
-            user_name: state?.value?.data?.user_name || "",
-            email: state?.value?.data?.email || "",
-            password: PasswordUtils.encrypt(state?.value?.data?.email?.password!) || "",
+            user_name: typeof state?.value === 'object' && state.value !== null && 'data' in state.value && (state.value as any).data?.user_name ? (state.value as any).data.user_name : "",
+            email: typeof state?.value === 'object' && state.value !== null && 'data' in state.value && (state.value as any).data?.email ? (state.value as any).data.email : "",
+            password: typeof state?.value === 'object' && state.value !== null && 'data' in state.value && (state.value as any).data?.email?.password ? PasswordUtils.encrypt((state.value as any).data.email.password) : "",
         },
     });
     const mutation = useSignUpMutation(setFormError);
@@ -62,7 +61,7 @@ export default function RegisterPage() {
                 password: PasswordUtils.encrypt(data.password),
             };
 
-            await mutation.mutate(requestBody, {
+            const response: any = await mutation.mutate(requestBody, {
                 onError: (err) => {
                     console.error("Registration error:", err);
                     setError("Registration failed. Please try again.");

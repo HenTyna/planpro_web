@@ -1,9 +1,7 @@
-"use client"
 
 import { Path } from "@/utils/enum"
 import {
     AlertCircle,
-    Calendar,
     Calendar1,
     ChartAreaIcon,
     ChevronLeft,

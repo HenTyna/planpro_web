@@ -1,30 +1,54 @@
 import { formatDate, getDaysBetween, getDaysUntilTrip } from "@/utils/dateformat"
-import { formatCurrency } from "@/utils/utils"
 import { Calendar, Clock, Globe, MapPin, Plane, Users, Wallet } from "lucide-react"
 import Image from "next/image"
 
 const tripCategories = [
-    { id: 1, name: "Business", color: "bg-blue-400", icon: Wallet },
-    { id: 2, name: "Vacation", color: "bg-green-400", icon: Plane },
-    { id: 3, name: "Weekend", color: "bg-orange-400", icon: Calendar },
-    { id: 4, name: "Family", color: "bg-purple-400", icon: Users },
-    { id: 5, name: "Adventure", color: "bg-red-400", icon: Globe },
-    { id: 6, name: "Road Trip", color: "bg-yellow-400", icon: MapPin },
+    { id: "Business", name: "Business", color: "bg-blue-400", icon: Wallet },
+    { id: "Vacation", name: "Vacation", color: "bg-green-400", icon: Plane },
+    { id: "Weekend", name: "Weekend", color: "bg-orange-400", icon: Calendar },
+    { id: "Family", name: "Family", color: "bg-purple-400", icon: Users },
+    { id: "Adventure", name: "Adventure", color: "bg-red-400", icon: Globe },
+    { id: "Road Trip", name: "Road Trip", color: "bg-yellow-400", icon: MapPin },
 ]
 
 const tripStatuses = [
-    { id: 1, name: "Planning", color: "bg-blue-400" },
-    { id: 2, name: "Booked", color: "bg-purple-400" },
-    { id: 3, name: "Upcoming", color: "bg-yellow-400" },
-    { id: 4, name: "In Progress", color: "bg-orange-400" },
-    { id: 5, name: "Completed", color: "bg-green-400" },
-    { id: 6, name: "Cancelled", color: "bg-gray-400" },
+    { id: "Planning", name: "Planning", color: "bg-blue-400" },
+    { id: "Booked", name: "Booked", color: "bg-purple-400" },
+    { id: "Upcoming", name: "Upcoming", color: "bg-yellow-400" },
+    { id: "In Progress", name: "In Progress", color: "bg-orange-400" },
+    { id: "Completed", name: "Completed", color: "bg-green-400" },
+    { id: "Cancelled", name: "Cancelled", color: "bg-gray-400" },
 ]
 
+// Define the Trip type inline
+interface Trip {
+    id?: number;
+    title: string;
+    description: string;
+    category: string;
+    status: string;
+    startDate: string;
+    endDate: string;
+    location: string;
+    budget: number;
+    currency: string;
+    accommodation: string;
+    transportation: string;
+    remarks?: string;
+    travelers: string;
+    imageUrl?: string;
+    destinations: { id: string; destinationName: string; days: number; activities: string[] }[];
+}
+
+interface TripCardProps {
+    trip: Trip;
+    onTripClick: (trip: Trip) => void;
+}
+
 // Trip Card Component
-const TripCard = ({ trip, onTripClick }: any) => {
-    const category = tripCategories.find((c) => c.id === trip.categoryId)
-    const status = tripStatuses.find((s) => s.id === trip.statusId)
+const TripCard = ({ trip, onTripClick }: TripCardProps) => {
+    const category = tripCategories.find((c) => c.id === trip.category)
+    const status = tripStatuses.find((s) => s.id === trip.status)
     const tripDuration = getDaysBetween(trip.startDate, trip.endDate)
     const daysUntilTrip = getDaysUntilTrip(trip.startDate)
 

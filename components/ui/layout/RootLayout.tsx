@@ -2,8 +2,6 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import NavBar from './Navbar';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 interface RootLayoutProps {
     children: React.ReactNode;

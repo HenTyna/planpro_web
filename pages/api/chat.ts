@@ -86,8 +86,12 @@ export default async function handler(
 
     return res.status(200).json({ reply: aiMessage });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in /api/chat:", error);
-    return res.status(500).json({ error: error.message || 'Failed to get response from AI' });
+    let errorMessage = 'Failed to get response from AI';
+    if (error && typeof error === 'object' && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
+    return res.status(500).json({ error: errorMessage });
   }
 }

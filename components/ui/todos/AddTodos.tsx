@@ -1,10 +1,23 @@
 import React, { useState } from 'react';
-import { X, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, Image as ImageIcon } from 'lucide-react';
+
+// Define a Task type for the onSubmit prop
+interface Task {
+    id: number;
+    title: string;
+    content: string;
+    property: string;
+    color: string;
+    status: string;
+    image?: string | null;
+    createdAt: string;
+    updatedAt: string;
+}
 
 interface AddTodosProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (task: any) => void;
+    onSubmit: (task: Task) => void;
     initialStatus?: string;
 }
 
@@ -107,7 +120,7 @@ const AddTodos: React.FC<AddTodosProps> = ({ isOpen, onClose, onSubmit, initialS
         e.preventDefault();
 
         if (validateForm()) {
-            const newTask = {
+            const newTask: Task = {
                 id: Date.now(),
                 title: formData.title.trim(),
                 content: formData.content.trim(),

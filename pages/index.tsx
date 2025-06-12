@@ -7,4 +7,4 @@ export default function LandingPage() {
     </>
   );
 }
-LandingPage.getLayout = (page: any) => <LandingLayout>{page}</LandingLayout>;
+LandingPage.getLayout = (page: React.ReactElement) => <LandingLayout>{page}</LandingLayout>;

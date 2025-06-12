@@ -6,8 +6,12 @@ import { Input } from "@/components/shared/ui/Input"
 import Image from "next/image"
 import todo from "@/public/asset/TodosImage.png"
 import { formatDate } from "@/utils/dateformat"
-
-
+import useFetchNote from "@/lib/hooks/useFetchNote"
+import { NoteService } from "@/service/note.service"
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
+import { toast } from "react-hot-toast"
+import NoteDetailModal from "./NoteDetailModal"
+import LandingSpinner from "@/components/shared/LandingSpinner"
 // Sample notes data
 const notes_data = [
   {
@@ -73,8 +77,19 @@ const noteColors = [
   { color: "bg-pink-400", ring: "ring-pink-500", name: "Pink", gradient: "from-pink-400 to-pink-300" },
 ]
 
+// Define a Note type matching notes_data
+interface Note {
+  id: number;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  color: string;
+  textColor: string;
+}
+
 // Confirmation Dialog Component
-export const ConfirmationDialog = ({ show, type, onConfirm, onClose }: any) => {
+export const ConfirmationDialog = ({ show, onConfirm, onClose }: { show: boolean; onConfirm: () => void; onClose: () => void }) => {
   if (!show) return null
 
   return (
@@ -116,11 +131,18 @@ export const ConfirmationDialog = ({ show, type, onConfirm, onClose }: any) => {
     </div>
   )
 }
+type NoteCardProps = {
+  note: Note
+  isSelected: boolean
+  onSelect: (note: Note) => void
+  onDelete: (note: Note) => void
+  onShowDetail: (note: Note) => void
+}
 
 // Note Card Component
-const NoteCard = ({ note, isSelected, onSelect, onDelete }: any) => {
+const NoteCard = ({ note, isSelected, onSelect, onDelete, onShowDetail }: NoteCardProps) => {
   const getGradient = (color: string) => {
-    const colorMap: any = {
+    const colorMap: Record<string, string> = {
       "bg-blue-400": "from-blue-400 to-blue-300",
       "bg-green-400": "from-green-400 to-green-300",
       "bg-yellow-400": "from-yellow-400 to-yellow-300",
@@ -136,7 +158,10 @@ const NoteCard = ({ note, isSelected, onSelect, onDelete }: any) => {
     <div
       className={`relative group rounded-xl overflow-hidden transition-all duration-300 ${isSelected ? "ring-2 ring-offset-2 ring-blue-500 shadow-md" : "shadow-sm hover:shadow-md"
         }`}
-      onClick={() => onSelect(note)}
+      onClick={() => {
+        onSelect(note)
+        onShowDetail(note)
+      }}
     >
       <div
         className={`absolute inset-0 bg-gradient-to-br ${getGradient(
@@ -168,18 +193,22 @@ const NoteCard = ({ note, isSelected, onSelect, onDelete }: any) => {
 
 // Main Notes List Component
 const NotesList = () => {
-  const [notes, setNotes] = useState(notes_data)
-  const [selectedNote, setSelectedNote] = useState<any>(notes_data[0])
+  const { data, isLoading, error } = useFetchNote()
+  const notesData = data?.data?.data || []
+  const queryClient = useQueryClient()
+  const [notes, setNotes] = useState<Note[]>(notesData)
+  const [selectedNote, setSelectedNote] = useState<Note | null>(notesData)
   const [selectedColor, setSelectedColor] = useState<number>(0)
-  const [collapsed, setCollapsed] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [addNote, setAddNote] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [noteToDelete, setNoteToDelete] = useState<any>(null)
+  const [noteToDelete, setNoteToDelete] = useState<number | null>(null)
   const [editedContent, setEditedContent] = useState("")
   const [editedTitle, setEditedTitle] = useState("")
   const [mounted, setMounted] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [showNoteDetail, setShowNoteDetail] = useState(false)
+  const [noteDetailNote, setNoteDetailNote] = useState<Note | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -239,21 +268,75 @@ const NotesList = () => {
     }
   }, [addNote])
 
-  const handleDeleteNote = () => {
-    if (noteToDelete) {
-      setNotes(notes.filter((note) => note.id !== noteToDelete.id))
-      if (selectedNote && selectedNote.id === noteToDelete.id) {
-        setSelectedNote(notes.length > 1 ? notes.find((note) => note.id !== noteToDelete.id) : null)
-      }
-      setNoteToDelete(null)
+  //mutation create note
+  const { mutate: createNote } = useMutation({
+    mutationFn: (data: any) => NoteService.createNote(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] })
+      toast.success("Note created successfully")
+    },
+    onError: (error: any) => {
+      console.log(error)
+      toast.error("Failed to create note")
     }
-  }
+    ,
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] })
+    }
+  })
 
-  const handleNoteSelect = (note: any) => {
+  //mutation update note
+  const { mutate: updateNote } = useMutation({
+    mutationFn: (data: any) => NoteService.updateNote(data.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] })
+      toast.success("Note updated successfully")
+    },
+    onError: (error: any) => {
+      console.log(error)
+      toast.error("Failed to update note")
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] })
+    }
+  })
+
+
+  //mutation delete note
+  const { mutate: deleteNote } = useMutation({
+    mutationFn: (id: any) => NoteService.deleteNote(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] })
+      toast.success("Note deleted successfully")
+      //close modal
+      setShowDelete(false)
+    },
+    onError: (error: any) => {
+      console.log(error)
+      toast.error("Failed to delete note")
+    }
+  })
+
+  //get note detail 
+  const { data: noteDetail, isLoading: noteDetailLoading, error: noteDetailError } = useQuery({
+    queryKey: ["noteDetail", noteDetailNote?.id],
+    queryFn: () => NoteService.getNoteById(noteDetailNote!.id),
+    enabled: typeof noteDetailNote?.id === "number" && showNoteDetail,
+  })
+
+  const handleDeleteNote = () => {
+    deleteNote(noteToDelete)
+    setNoteToDelete(null)
+  }
+  console.log("noteToDelete", noteToDelete)
+
+  const handleNoteSelect = (note: Note) => {
+    console.log("note", note.id)
     setSelectedNote(note)
     setAddNote(false)
     setEditedContent(note.content)
     setEditedTitle(note.title)
+    setNoteToDelete(note.id)
   }
 
   const handleAddNote = () => {
@@ -275,9 +358,10 @@ const NotesList = () => {
         color: noteColors[selectedColor].color,
         textColor: `text-${noteColors[selectedColor].color.split("-")[1]}-900`,
       }
-      setNotes([newNote, ...notes])
+      setNotes([newNote, ...notes]) 
       setSelectedNote(newNote)
       setAddNote(false)
+      createNote(newNote)
     } else if (selectedNote) {
       const updatedNotes = notes.map((note) =>
         note.id === selectedNote.id
@@ -292,17 +376,35 @@ const NotesList = () => {
           : note,
       )
       setNotes(updatedNotes)
-      setSelectedNote(updatedNotes.find((note) => note.id === selectedNote.id))
+      // Find the updated note object
+      const updatedNote = updatedNotes.find((note) => note.id === selectedNote.id)
+      if (updatedNote) {
+        updateNote(updatedNote)
+        setSelectedNote(updatedNote)
+      }
     }
   }
 
-  const filteredNotes = notes.filter(
+  // Show note detail modal
+  const handleShowNoteDetail = (note: Note) => {
+    setNoteDetailNote(note)
+    setShowNoteDetail(true)
+  }
+
+  const filteredNotes = notes?.filter(
     (note) =>
       note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       note.content.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   if (!mounted) return null
+  if (isLoading) return (
+    <div className="bg-gray-50 max-h-screen overflow-auto">
+      <div className="mx-auto p-4">
+        <LandingSpinner />
+      </div>
+    </div>
+  )
 
   return (
     <div className="bg-gray-50 custom-scrollbar overflow-auto">
@@ -319,11 +421,11 @@ const NotesList = () => {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent mb-2">
                 Notes
               </h1>
-              <div className="text-gray-600 text-sm mb-4">Dashboard • Notes ({notes.length})</div>
+              <div className="text-gray-600 text-sm mb-4">Dashboard • Notes ({notes?.length})</div>
               <div className="flex flex-wrap gap-4 text-sm">
                 <div className="bg-white bg-opacity-70 backdrop-blur-sm rounded-lg px-4 py-3 shadow-sm border border-white flex items-center">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                    <span className="text-blue-500 font-semibold">{notes.length}</span>
+                    <span className="text-blue-500 font-semibold">{notes?.length}</span>
                   </div>
                   <span className="text-gray-700">Total Notes</span>
                 </div>
@@ -375,18 +477,19 @@ const NotesList = () => {
             <div className="flex flex-col md:flex-row gap-6">
               {/* Notes Grid */}
               <div className={`${selectedNote || addNote ? "w-full md:w-1/2 lg:w-2/3" : "w-full"}`}>
-                {filteredNotes.length > 0 ? (
+                {filteredNotes?.length > 0 ? (
                   <div className="note-grid">
                     {filteredNotes.map((note) => (
                       <NoteCard
                         key={note.id}
                         note={note}
-                        isSelected={selectedNote && selectedNote.id === note.id}
+                        isSelected={Boolean(selectedNote && selectedNote.id === note.id)}
                         onSelect={handleNoteSelect}
-                        onDelete={(note: any) => {
-                          setNoteToDelete(note)
+                        onDelete={(note: Note) => {
+                          setNoteToDelete(note.id)
                           setShowDelete(true)
                         }}
+                        onShowDetail={handleShowNoteDetail}
                       />
                     ))}
                   </div>
@@ -522,9 +625,15 @@ const NotesList = () => {
       {/* Confirmation Dialog */}
       <ConfirmationDialog
         show={showDelete}
-        type={ConfirmationType.DELETE}
         onConfirm={handleDeleteNote}
         onClose={() => setShowDelete(false)}
+      />
+
+      <NoteDetailModal
+        data={noteDetail}
+        onClose={() => setShowNoteDetail(false)}
+        onDelete={handleDeleteNote}
+        open={showNoteDetail}
       />
     </div>
   )

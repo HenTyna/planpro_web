@@ -43,7 +43,7 @@ export function useSessionStorage<T>(
     useEffect(() => {
         try {
             const item = localStorage.getItem(key)
-            item && setStoredValue(deserialize(item))
+            if (item) setStoredValue(deserialize(item))
         } catch (error) {
             console.error(error)
         }
