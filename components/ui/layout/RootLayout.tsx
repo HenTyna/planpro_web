@@ -11,8 +11,7 @@ function RootLayout({ children }: RootLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
     return (
-        <div className="w-full flex flex-col min-h-screen max-h-screen overflow-y-auto">
-            {/* <ToastContainer position="top-right" autoClose={3000} /> */}
+        <div className="w-full flex flex-col min-h-screen max-h-screen overflow-x-hidden">
             {/* Sidebar */}
             <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
@@ -37,7 +36,7 @@ function RootLayout({ children }: RootLayoutProps) {
                 />
 
                 {/* Page content */}
-                <main className="flex-grow p-6 bg-gray-50 ">
+                <main className="flex-grow p-6 bg-gray-50 mt-16">
                     {children}
                 </main>
             </div>

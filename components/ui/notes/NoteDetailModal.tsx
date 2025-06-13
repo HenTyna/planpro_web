@@ -8,6 +8,7 @@ import { Button } from "@/components/shared/ui/Button"
 import { Badge } from "@/components/shared/ui/badge"
 import { OnConfirmationDelete } from "@/components/shared/OnConfirmationDelete"
 import { cn } from "@/utils/utils"
+import { formatDate } from "@/utils/dateformat"
 
 type NoteDetailModalProps = {
   data: any
@@ -28,7 +29,7 @@ const colorGradients: Record<string, string> = {
 }
 
 const NoteDetailModal = ({ data: dataDetail, onClose, onDelete, onEdit, open }: NoteDetailModalProps) => {
-  const data = dataDetail?.data?.data
+  const data = dataDetail
   const [isDeleting, setIsDeleting] = useState(false)
   const [copied, setCopied] = useState(false)
   const [expanded, setExpanded] = useState(false)
@@ -36,15 +37,29 @@ const NoteDetailModal = ({ data: dataDetail, onClose, onDelete, onEdit, open }: 
   const [isContentOverflowing, setIsContentOverflowing] = useState(false)
   const [wordCount, setWordCount] = useState(0)
 
-  useEffect(() => {
-    if (contentRef.current) {
-      setIsContentOverflowing(contentRef.current.scrollHeight > contentRef.current.clientHeight)
 
-      // Calculate word count
-      const content = data?.content || ""
-      setWordCount(content.trim() ? content.trim().split(/\s+/).length : 0)
+  //useEffect to calculate word count
+  useEffect(() => {
+    if (!data?.content) {
+      setWordCount(0)
+      return
     }
-  }, [data, contentRef])
+  
+    if (contentRef.current) {
+      setIsContentOverflowing(
+        contentRef.current.scrollHeight > contentRef.current.clientHeight
+      )
+    }
+  
+    const content = data.content
+      .replace(/[^\w\s]|_/g, "") 
+      .replace(/\s+/g, " ")      
+      .trim()
+  
+    setWordCount(content ? content.split(" ").length : 0)
+  }, [data?.content])
+  
+  
 
   const copyToClipboard = () => {
     if (data?.content) {
@@ -141,11 +156,11 @@ const NoteDetailModal = ({ data: dataDetail, onClose, onDelete, onEdit, open }: 
 
               <div className="flex items-center gap-2 mb-4 text-sm text-gray-500">
                 <CalendarDays size={16} />
-                <span>{data.createdAt ? format(new Date(data.createdAt), "PPP") : "Unknown"}</span>
+                <span>{data.createdAt ? formatDate(data.createdAt) : "Unknown"}</span>
                 {data.updatedAt && data.updatedAt !== data.createdAt && (
                   <>
                     <span className="mx-1">•</span>
-                    <span className="italic">Updated {format(new Date(data.updatedAt), "PPP")}</span>
+                    <span className="italic">Updated {formatDate(data.updatedAt)}</span>
                   </>
                 )}
               </div>

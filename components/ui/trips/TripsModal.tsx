@@ -88,7 +88,6 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: TripModalProps) => 
 
     const destData = trip?.destinations?.[0]?.destination || [];
 
-    console.log("destData", destData)
     const {
         register,
         control,
@@ -142,7 +141,6 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: TripModalProps) => 
     })
 
     //log error
-    console.log("errors", errors)
     
     const watchedImageUrl = watch("imageUrl")
 

@@ -1,4 +1,4 @@
-import Tasks from '@/components/ui/todos/Tasks';
+import TodosList from '@/components/ui/todos/TodosList';
 import Head from 'next/head';
 import React from 'react'
 
@@ -12,7 +12,7 @@ const todos = () => {
       </Head>
 
       <main>
-        <Tasks/>
+        <TodosList />
       </main>
 
     </div>

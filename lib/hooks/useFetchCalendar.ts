@@ -1,8 +1,9 @@
 import { calendarService } from "@/service/calendar.service"
+import { NoteService } from "@/service/note.service"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 const useFetchCalendar = () => {
-    
+    const queryClient = useQueryClient()
     const { data, isLoading, error } = useQuery({
         queryKey: ["calendar"],
         queryFn: () => calendarService.getCalendar(),
@@ -14,7 +15,10 @@ const useFetchCalendar = () => {
         refetchOnReconnect: true,
         
     })
-    console.log("data", data)
+    queryClient.prefetchQuery({
+        queryKey: ["notes"],
+        queryFn: () => NoteService.getMyNotes()
+    })
   return {
     data,
     isLoading,

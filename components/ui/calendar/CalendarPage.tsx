@@ -21,11 +21,11 @@ import EventModal from "./EventModal"
 // Event categories mapping (API calendarType is string, so use string keys)
 const eventCategories = [
     { id: "1", name: "Meeting", color: "bg-blue-400" },
-    { id: "2", name: "Personal", color: "bg-green-400" },
-    { id: "3", name: "Deadline", color: "bg-red-400" },
-    { id: "4", name: "Travel", color: "bg-yellow-400" },
-    { id: "5", name: "Social", color: "bg-purple-400" },
-    { id: "6", name: "Workshop", color: "bg-pink-400" }, // Example for calendarType: "6"
+    { id: "4", name: "Personal", color: "bg-green-400" },
+    { id: "5", name: "Deadline", color: "bg-red-400" },
+    { id: "6", name: "Travel", color: "bg-yellow-400" },
+    { id: "2", name: "Vacation", color: "bg-purple-400" },
+    { id: "3", name: "Workshop", color: "bg-pink-400" }, // Example for calendarType: "6"
 ]
 
 // Helper: Parse "YYYY-MM-DD" or "YYYYMMDD" to Date

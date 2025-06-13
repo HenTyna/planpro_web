@@ -1,4 +1,3 @@
-
 import { Path } from "@/utils/enum"
 import {
     AlertCircle,
@@ -173,11 +172,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
             {/* Sidebar header */}
             <div
-                className={`h-16 flex items-center px-4 border-b border-gray-200 relative ${isOpen ? "justify-start" : "justify-center"}`}
+                className={`h-16 flex items-center px-4 border-b border-gray-200 relative z-10 ${isOpen ? "justify-start" : "justify-center"}`}
             >
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-teal-50 opacity-50 pointer-events-none"></div>
                 {isOpen ? (
-                    <div className="flex items-center">
+                    <div className="flex items-center relative z-10">
                         <div className="relative">
                             <div className="absolute inset-0 bg-blue-500 rounded-full blur-sm opacity-20 animate-pulse"></div>
                             <Sparkles className="h-8 w-8 text-blue-500 relative z-10" />
@@ -187,7 +186,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                         </span>
                     </div>
                 ) : (
-                    <div className="relative">
+                    <div className="relative z-10">
                         <div className="absolute inset-0 bg-blue-500 rounded-full blur-sm opacity-20 animate-pulse"></div>
                         <Sparkles className="h-8 w-8 text-blue-500 relative z-10" />
                     </div>

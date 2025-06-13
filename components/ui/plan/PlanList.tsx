@@ -728,7 +728,7 @@ const PlanningPage = () => {
   if (!mounted) return null
 
   return (
-    <div className="bg-gray-50 overflow-y-auto max-h-screen">
+    <div className="bg-gray-50 max-h-screen">
       <div className=" mx-auto p-4">
         {/* Header Section */}
         <div className="mb-6 relative">

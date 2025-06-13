@@ -7,10 +7,11 @@ import { CalendarEvent } from "./CalendarPage"
 // Event categories should use string IDs to match event.categoryId type
 const eventCategories = [
     { id: "1", name: "Meeting", color: "bg-blue-400" },
-    { id: "2", name: "Personal", color: "bg-green-400" },
-    { id: "3", name: "Deadline", color: "bg-red-400" },
-    { id: "4", name: "Travel", color: "bg-yellow-400" },
-    { id: "5", name: "Social", color: "bg-purple-400" },
+    { id: "4", name: "Personal", color: "bg-green-400" },
+    { id: "5", name: "Deadline", color: "bg-red-400" },
+    { id: "6", name: "Travel", color: "bg-yellow-400" },
+    { id: "2", name: "Vacation", color: "bg-purple-400" },
+    { id: "3", name: "Workshop", color: "bg-pink-400" }, 
 ]
 
 type EventDetailModelProps = {

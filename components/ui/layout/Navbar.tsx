@@ -1,6 +1,6 @@
 import { useFetchProfile } from "@/lib/hooks/useFetchProfile";
 import profile from "@/public/asset/profile.jpg";
-import { Bell, ChevronDown, Globe, HelpCircle, LogOut, Menu, Moon, Search, Sun, UserIcon } from 'lucide-react';
+import { Bell, ChevronDown, Globe, HelpCircle, LogOut, Menu, Moon, Search, Sparkles, Sun, UserIcon } from 'lucide-react';
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import ProfileContrainer from "../profile/ProfileContrainer";
@@ -87,7 +87,7 @@ const NavBar: React.FC<NavBarProps> = ({
   }
 
   return (
-    <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 flex items-center justify-between shadow-sm z-20">
+    <nav className="fixed top-0 right-0 left-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 px-4 flex items-center justify-between shadow-sm z-50">
       {/* Left section - Menu and search */}
       <div className="flex items-center">
         {/* Menu button */}
@@ -100,7 +100,7 @@ const NavBar: React.FC<NavBarProps> = ({
         </button>
 
         {/* Logo */}
-        <div className="hidden md:flex items-center mr-6">
+        {/* <div className="hidden md:flex items-center mr-6">
           <div
             className={`bg-gradient-to-r  p-1.5 rounded-lg shadow-sm mr-2 flex items-center justify-center`}
           >
@@ -119,28 +119,17 @@ const NavBar: React.FC<NavBarProps> = ({
               <path d="M8 12h8" />
             </svg>
           </div>
-        </div>
+        </div> */}
 
-        {/* Search */}
-        <div className="relative">
-          <Search
-            size={18}
-            className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors ${isSearchFocused ? `text-${currentTheme?.name.toLowerCase()}-500` : "text-gray-400"
-              }`}
-          />
-          <input
-            type="text"
-            placeholder="Search..."
-            className={`pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none transition-all duration-300 w-48 md:w-64 lg:w-80
-              ${isSearchFocused
-                ? `border-${currentTheme?.name?.toLowerCase()}-500 ring-2 ring-${currentTheme?.name?.toLowerCase()}-200 bg-white dark:bg-gray-700`
-                : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
-              }
-              text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500
-            `}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setIsSearchFocused(false)}
-          />
+        {/* logo */}
+        <div className="flex items-center">
+          <div className="relative">
+            <div className="absolute inset-0 bg-blue-500 rounded-full blur-sm opacity-20 animate-pulse"></div>
+            <Sparkles className="h-8 w-8 text-blue-500 relative z-10" />
+          </div>
+          <span className="ml-2 text-xl font-bold bg-gradient-to-r from-blue-500 to-teal-400 bg-clip-text text-transparent">
+            PlanPro
+          </span>
         </div>
       </div>
 

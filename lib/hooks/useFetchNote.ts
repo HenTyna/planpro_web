@@ -4,13 +4,11 @@ import { useQuery } from "@tanstack/react-query"
 const useFetchNote = () => {
     const { data, isLoading, error } = useQuery({
         queryKey: ["notes"],
-        queryFn: () => NoteService.getMyNotes(),
-        staleTime: 1000 * 60 * 5,
-        refetchInterval: 1000 * 60 * 5,
-        refetchIntervalInBackground: true,
-        refetchOnWindowFocus: true,
-        refetchOnMount: true,
-        refetchOnReconnect: true,
+        queryFn: async () => {
+            const response = await NoteService.getMyNotes()
+            return response.data
+        },
+        select: (data) => data.data
     })
     return { data, isLoading, error }
 }

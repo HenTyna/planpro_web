@@ -1,70 +1,19 @@
-import { useState, useEffect, useRef } from "react"
-import { CalendarDays, Check, Plus, Save, Search, Trash2, X } from "lucide-react"
-import { ConfirmationType } from "@/utils/enum"
+import LandingSpinner from "@/components/shared/LandingSpinner"
 import { Button } from "@/components/shared/ui/Button"
 import { Input } from "@/components/shared/ui/Input"
-import Image from "next/image"
-import todo from "@/public/asset/TodosImage.png"
-import { formatDate } from "@/utils/dateformat"
 import useFetchNote from "@/lib/hooks/useFetchNote"
+import { Note } from "@/lib/types/comon"
+import todo from "@/public/asset/TodosImage.png"
 import { NoteService } from "@/service/note.service"
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { Check, Info, Plus, Save, Search, Trash2, X } from "lucide-react"
+import Image from "next/image"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "react-hot-toast"
-import NoteDetailModal from "./NoteDetailModal"
-import LandingSpinner from "@/components/shared/LandingSpinner"
-// Sample notes data
-const notes_data = [
-  {
-    id: 1,
-    title: "Project Ideas",
-    content:
-      "1. Mobile app for plant care tracking\n2. Browser extension for productivity\n3. Smart home dashboard\n4. Recipe organizer with shopping list",
-    createdAt: new Date("2025-05-10"),
-    updatedAt: new Date("2025-05-11"),
-    color: "bg-blue-400",
-    textColor: "text-blue-900",
-  },
-  {
-    id: 2,
-    title: "Meeting Notes - Design Team",
-    content:
-      "- Review wireframes for dashboard\n- Discuss color palette changes\n- Plan user testing for next sprint\n- Assign new tasks to team members",
-    createdAt: new Date("2025-05-08"),
-    updatedAt: new Date("2025-05-12"),
-    color: "bg-green-400",
-    textColor: "text-green-900",
-  },
-  {
-    id: 3,
-    title: "Books to Read",
-    content:
-      "1. Atomic Habits - James Clear\n2. Deep Work - Cal Newport\n3. The Design of Everyday Things - Don Norman\n4. Thinking, Fast and Slow - Daniel Kahneman",
-    createdAt: new Date("2025-05-05"),
-    updatedAt: new Date("2025-05-05"),
-    color: "bg-yellow-400",
-    textColor: "text-yellow-900",
-  },
-  {
-    id: 4,
-    title: "Weekly Goals",
-    content:
-      "- Complete project proposal\n- Schedule team meeting\n- Review quarterly metrics\n- Update documentation\n- Prepare presentation",
-    createdAt: new Date("2025-05-01"),
-    updatedAt: new Date("2025-05-03"),
-    color: "bg-orange-400",
-    textColor: "text-orange-900",
-  },
-  {
-    id: 5,
-    title: "Travel Plans",
-    content:
-      "Places to visit:\n- Tokyo, Japan\n- Barcelona, Spain\n- New York City, USA\n- Sydney, Australia\n\nBudget: $3000\nDuration: 2 weeks",
-    createdAt: new Date("2025-04-28"),
-    updatedAt: new Date("2025-04-30"),
-    color: "bg-teal-400",
-    textColor: "text-teal-900",
-  },
-]
+import NoteCard from "./NoteCard"
+import { Switch } from "@/components/shared/ui/swtich"
+import { formatDateToYYYYMMDD } from "@/utils/dateformat"
+
 
 // Note color options with enhanced styling
 const noteColors = [
@@ -78,15 +27,7 @@ const noteColors = [
 ]
 
 // Define a Note type matching notes_data
-interface Note {
-  id: number;
-  title: string;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-  color: string;
-  textColor: string;
-}
+
 
 // Confirmation Dialog Component
 export const ConfirmationDialog = ({ show, onConfirm, onClose }: { show: boolean; onConfirm: () => void; onClose: () => void }) => {
@@ -131,73 +72,15 @@ export const ConfirmationDialog = ({ show, onConfirm, onClose }: { show: boolean
     </div>
   )
 }
-type NoteCardProps = {
-  note: Note
-  isSelected: boolean
-  onSelect: (note: Note) => void
-  onDelete: (note: Note) => void
-  onShowDetail: (note: Note) => void
-}
 
-// Note Card Component
-const NoteCard = ({ note, isSelected, onSelect, onDelete, onShowDetail }: NoteCardProps) => {
-  const getGradient = (color: string) => {
-    const colorMap: Record<string, string> = {
-      "bg-blue-400": "from-blue-400 to-blue-300",
-      "bg-green-400": "from-green-400 to-green-300",
-      "bg-yellow-400": "from-yellow-400 to-yellow-300",
-      "bg-orange-400": "from-orange-400 to-orange-300",
-      "bg-teal-400": "from-teal-400 to-teal-300",
-      "bg-purple-400": "from-purple-400 to-purple-300",
-      "bg-pink-400": "from-pink-400 to-pink-300",
-    }
-    return colorMap[color] || "from-gray-400 to-gray-300"
-  }
-
-  return (
-    <div
-      className={`relative group rounded-xl overflow-hidden transition-all duration-300 ${isSelected ? "ring-2 ring-offset-2 ring-blue-500 shadow-md" : "shadow-sm hover:shadow-md"
-        }`}
-      onClick={() => {
-        onSelect(note)
-        onShowDetail(note)
-      }}
-    >
-      <div
-        className={`absolute inset-0 bg-gradient-to-br ${getGradient(
-          note.color,
-        )} opacity-90 transition-opacity duration-300 group-hover:opacity-100`}
-      ></div>
-      <div className="relative p-4 h-full flex flex-col">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-semibold text-sm text-gray-900 truncate max-w-[80%]">{note.title}</h3>
-          <button
-            className="text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-red-600 p-1 rounded-full hover:bg-white hover:bg-opacity-30"
-            onClick={(e) => {
-              e.stopPropagation()
-              onDelete(note)
-            }}
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
-        <p className="text-xs text-gray-700 line-clamp-3 mb-2 flex-grow">{note.content}</p>
-        <div className="flex items-center text-xs text-gray-700 mt-auto">
-          <CalendarDays size={12} className="mr-1" />
-          {formatDate(note.createdAt)}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // Main Notes List Component
 const NotesList = () => {
-  const { data, isLoading, error } = useFetchNote()
-  const notesData = data?.data?.data || []
   const queryClient = useQueryClient()
-  const [notes, setNotes] = useState<Note[]>(notesData)
-  const [selectedNote, setSelectedNote] = useState<Note | null>(notesData)
+  const { data: notesData = [], isLoading, error } = useFetchNote()
+  const [notes, setNotes] = useState<Note[]>([])
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null)
+
   const [selectedColor, setSelectedColor] = useState<number>(0)
   const [showDelete, setShowDelete] = useState(false)
   const [addNote, setAddNote] = useState(false)
@@ -207,8 +90,7 @@ const NotesList = () => {
   const [editedTitle, setEditedTitle] = useState("")
   const [mounted, setMounted] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const [showNoteDetail, setShowNoteDetail] = useState(false)
-  const [noteDetailNote, setNoteDetailNote] = useState<Note | null>(null)
+  const [isCalendarEvent, setIsCalendarEvent] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -255,10 +137,21 @@ const NotesList = () => {
   }, [])
 
   useEffect(() => {
+    if (notesData?.length > 0) {
+      setNotes(notesData)
+      if (!selectedNote) setSelectedNote(notesData[0]) // Prevent undefined
+      setIsCalendarEvent(notesData[0].isCalendarEvent)
+    }
+  }, [notesData])
+
+  console.log("isCalendarEvent", isCalendarEvent)
+
+  useEffect(() => {
     if (selectedNote) {
       setEditedContent(selectedNote.content)
       setEditedTitle(selectedNote.title)
       setSelectedColor(noteColors.findIndex((c) => c.color === selectedNote.color) || 0)
+      setIsCalendarEvent(selectedNote.calendarEvent)
     }
   }, [selectedNote])
 
@@ -271,8 +164,8 @@ const NotesList = () => {
   //mutation create note
   const { mutate: createNote } = useMutation({
     mutationFn: (data: any) => NoteService.createNote(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["notes"] })
       toast.success("Note created successfully")
     },
     onError: (error: any) => {
@@ -288,8 +181,9 @@ const NotesList = () => {
   //mutation update note
   const { mutate: updateNote } = useMutation({
     mutationFn: (data: any) => NoteService.updateNote(data.id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["notes"] })
+      await queryClient.invalidateQueries({ queryKey: ["calendar"] })
       toast.success("Note updated successfully")
     },
     onError: (error: any) => {
@@ -305,8 +199,8 @@ const NotesList = () => {
   //mutation delete note
   const { mutate: deleteNote } = useMutation({
     mutationFn: (id: any) => NoteService.deleteNote(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["notes"] })
       toast.success("Note deleted successfully")
       //close modal
       setShowDelete(false)
@@ -317,27 +211,19 @@ const NotesList = () => {
     }
   })
 
-  //get note detail 
-  const { data: noteDetail, isLoading: noteDetailLoading, error: noteDetailError } = useQuery({
-    queryKey: ["noteDetail", noteDetailNote?.id],
-    queryFn: () => NoteService.getNoteById(noteDetailNote!.id),
-    enabled: typeof noteDetailNote?.id === "number" && showNoteDetail,
-  })
 
   const handleDeleteNote = () => {
     deleteNote(noteToDelete)
     setNoteToDelete(null)
   }
-  console.log("noteToDelete", noteToDelete)
 
   const handleNoteSelect = (note: Note) => {
-    console.log("note", note.id)
     setSelectedNote(note)
     setAddNote(false)
-    setEditedContent(note.content)
-    setEditedTitle(note.title)
     setNoteToDelete(note.id)
+    setIsCalendarEvent(note.calendarEvent)
   }
+
 
   const handleAddNote = () => {
     setAddNote(true)
@@ -345,57 +231,49 @@ const NotesList = () => {
     setEditedContent("")
     setEditedTitle("")
     setSelectedColor(0)
+    setIsCalendarEvent(false)
   }
 
   const handleSaveNote = () => {
     if (addNote) {
       const newNote = {
-        id: Date.now(),
+        id: Date.now(), // Temporary ID
         title: editedTitle || "Untitled Note",
         content: editedContent,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: formatDateToYYYYMMDD(new Date().toISOString()),
+        updatedAt: formatDateToYYYYMMDD(new Date().toISOString()),
         color: noteColors[selectedColor].color,
         textColor: `text-${noteColors[selectedColor].color.split("-")[1]}-900`,
+        calendarEvent: isCalendarEvent,
       }
-      setNotes([newNote, ...notes]) 
+
       setSelectedNote(newNote)
       setAddNote(false)
       createNote(newNote)
     } else if (selectedNote) {
-      const updatedNotes = notes.map((note) =>
-        note.id === selectedNote.id
-          ? {
-            ...note,
-            title: editedTitle,
-            content: editedContent,
-            updatedAt: new Date(),
-            color: noteColors[selectedColor].color,
-            textColor: `text-${noteColors[selectedColor].color.split("-")[1]}-900`,
-          }
-          : note,
-      )
-      setNotes(updatedNotes)
-      // Find the updated note object
-      const updatedNote = updatedNotes.find((note) => note.id === selectedNote.id)
-      if (updatedNote) {
-        updateNote(updatedNote)
-        setSelectedNote(updatedNote)
+      const updatedNote = {
+        ...selectedNote,
+        title: editedTitle,
+        content: editedContent,
+        createdAt: formatDateToYYYYMMDD(selectedNote.createdAt),
+        updatedAt: formatDateToYYYYMMDD(new Date().toISOString()),
+        color: noteColors[selectedColor].color,
+        textColor: `text-${noteColors[selectedColor].color.split("-")[1]}-900`,
+        calendarEvent: isCalendarEvent,
       }
+
+      updateNote(updatedNote)
+      setSelectedNote(updatedNote)
     }
   }
 
-  // Show note detail modal
-  const handleShowNoteDetail = (note: Note) => {
-    setNoteDetailNote(note)
-    setShowNoteDetail(true)
-  }
 
-  const filteredNotes = notes?.filter(
+  const filteredNotes = notes.filter(
     (note) =>
-      note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      note.content.toLowerCase().includes(searchQuery.toLowerCase()),
+      note.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.content?.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
 
   if (!mounted) return null
   if (isLoading) return (
@@ -485,11 +363,7 @@ const NotesList = () => {
                         note={note}
                         isSelected={Boolean(selectedNote && selectedNote.id === note.id)}
                         onSelect={handleNoteSelect}
-                        onDelete={(note: Note) => {
-                          setNoteToDelete(note.id)
-                          setShowDelete(true)
-                        }}
-                        onShowDetail={handleShowNoteDetail}
+                        onDelete={handleDeleteNote}
                       />
                     ))}
                   </div>
@@ -592,6 +466,52 @@ const NotesList = () => {
                         ))}
                       </div>
                     </div>
+                    {/* Add to Calendar */}
+
+                    <div className="md:col-span-2 flex flex-col gap-2 bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 rounded-xl p-4 shadow-inner border border-blue-100">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-blue-700 flex items-center">
+                            <Info className="h-4 w-4 mr-1 text-blue-400" />
+                            Add to Calendar
+                          </span>
+                          <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-100 text-xs text-blue-600 font-medium animate-pulse">
+                            New!
+                          </span>
+                        </div>
+                        <Switch
+                          checked={isCalendarEvent}
+                          onCheckedChange={() => {
+                            setIsCalendarEvent(!isCalendarEvent)
+                          }}
+                          className="scale-110"
+                        />
+                      </div>
+                      <div className="mt-2 text-xs text-gray-600 flex items-center gap-2">
+                        <span>
+                          {isCalendarEvent
+                            ? "This note will be added to your calendar and you'll get reminders."
+                            : "Enable to sync this note with your calendar and receive smart notifications."}
+                        </span>
+                        {isCalendarEvent && (
+                          <span className="inline-flex items-center gap-1 text-green-600 font-medium">
+                            <svg className="h-4 w-4 animate-bounce" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
+                            Synced!
+                          </span>
+                        )}
+                      </div>
+                      {isCalendarEvent && (
+                        <div className="mt-3 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg p-2">
+                          <svg className="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M8 7V3M16 7V3M4 11h16M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                          <span className="text-xs text-blue-700">
+                            Calendar event will include note title, content, and color.
+                          </span>
+                        </div>
+                      )}
+
+                    </div>
+
+
 
                     <div className="flex justify-end gap-3 pt-4">
                       <Button
@@ -629,12 +549,7 @@ const NotesList = () => {
         onClose={() => setShowDelete(false)}
       />
 
-      <NoteDetailModal
-        data={noteDetail}
-        onClose={() => setShowNoteDetail(false)}
-        onDelete={handleDeleteNote}
-        open={showNoteDetail}
-      />
+
     </div>
   )
 }
