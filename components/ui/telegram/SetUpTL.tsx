@@ -1,8 +1,10 @@
 import { Button } from '@/components/shared/ui/Button'
 import { Bell, Plus } from 'lucide-react'
-import React from 'react'
+import React, { useState } from 'react'
+import ConnectTelegramBot from './ConnectTelegramBot'
 
 const SetUpTL = () => {
+    const [isConnected, setIsConnected] = useState(false)
     return (
         <div className="flex flex-col h-screen items-center justify-center py-16 text-center">
             <div className="relative mb-6">
@@ -22,10 +24,13 @@ const SetUpTL = () => {
                 Set up your telegram reminders
             </p>
 
-            <Button className=" hover:text-white border border-gray-400  text-gray-800 hover:bg-gray-50">
+            <Button onClick={() => setIsConnected(true)} className=" hover:text-white border border-gray-400  text-gray-800 hover:bg-gray-50">
                 <Plus className="h-4 w-4 mr-2" />
                 SetUp Telegram
             </Button>
+            {
+                isConnected && <ConnectTelegramBot open={isConnected} onClose={() => setIsConnected(false)} />
+            }
         </div>
     )
 }

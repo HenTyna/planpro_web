@@ -8,6 +8,7 @@ import {
     HelpCircle,
     ListTodo,
     MessageCircle,
+    MessageCircleDashed,
     Notebook,
     Plane,
     Sparkles,
@@ -265,7 +266,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
                     <Link href={Path.TELEGRAM}>
                         <SidebarItem
-                            icon={<ChartAreaIcon size={20} />}
+                            icon={<MessageCircleDashed size={20} />}
                             text="Telegram"
                             active={currentPath === Path.TELEGRAM}
                             collapsed={!isOpen}
