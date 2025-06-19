@@ -11,9 +11,13 @@ async function verifyTelegram(chatId: number) {
 async function connectTelegram(chatId: number) {
     return http.put(ServiceId.TELEGRAM + `/connect-telegram/${chatId}`);
 }
+async function getTelegramUserInfo() {
+    return http.get(ServiceId.TELEGRAM + `/get-telegram-user-info`);
+}
 
 const TelegramService = {
    verifyTelegram,
-   connectTelegram
+   connectTelegram,
+   getTelegramUserInfo
 }
 export default TelegramService

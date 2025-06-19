@@ -33,14 +33,12 @@ const ConnectTelegramBot = ({ open, onClose }: Props) => {
     const { mutate: connectTelegram } = useMutation({
         mutationFn: async () => await TelegramService.connectTelegram(Number(chatId)),
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ["telegram"] })
             toast.success('Telegram connected.')
         },
         onError: () => {
             toast.error('Failed to connect to Telegram.')
         },
         onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ["telegram"] })
         }
     })  
     const { mutate: verifyTelegram } = useMutation({
@@ -84,16 +82,26 @@ const ConnectTelegramBot = ({ open, onClose }: Props) => {
 
     const handleConnect = async () => {
         setConnecting(true)
-        connectTelegram()
-        // Simulate connection
-        setTimeout(() => {
-            setConnected(true)
+        try {
+            await new Promise((resolve, reject) => {
+                connectTelegram(undefined, {
+                    onSuccess: () => {
+                        setConnected(true)
+                        setConnecting(false)
+                        setTimeout(() => {
+                            onClose()
+                        }, 1500)
+                        resolve(undefined)
+                    },
+                    onError: (error) => {
+                        setConnecting(false)
+                        reject(error)
+                    }
+                })
+            })
+        } catch (error) {
             setConnecting(false)
-            setTimeout(() => {
-                onClose()
-            }, 1500)
-        }, 2000)
-
+        }
     }
 
     const handleClose = () => {
