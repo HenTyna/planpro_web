@@ -418,7 +418,7 @@ const TripPage = () => {
 
       {/* Add/Edit Trip Modal */}
       {showTripModal && (
-        <TripModal trip={selectedTrip} onClose={handleCloseModal} onSave={handleSaveTrip} isNew={!selectedTrip} />
+        <TripModal trip={selectedTrip || undefined} onClose={handleCloseModal} onSave={handleSaveTrip} isNew={!selectedTrip} />
       )}
     </div>
   )

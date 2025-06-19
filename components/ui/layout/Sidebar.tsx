@@ -207,7 +207,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                             color="blue"
                         />
                     </Link>
-                    <Link href={Path.PLAN}>
+                    {/* <Link href={Path.PLAN}>
                         <SidebarItem
                             icon={<Plane size={20} />}
                             text="Planning"
@@ -215,7 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                             collapsed={!isOpen}
                             color="orange"
                         />
-                    </Link>
+                    </Link> */}
                     <Link href={Path.NOTES}>
                         <SidebarItem
                             icon={<Notebook size={20} />}
