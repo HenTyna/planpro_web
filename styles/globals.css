@@ -142,6 +142,19 @@ body {
   animation: scaleIn 0.3s ease-out;
 }
 
+/* Animation delay utilities */
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1000ms;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }

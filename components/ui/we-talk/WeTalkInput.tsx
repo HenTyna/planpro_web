@@ -1,0 +1,93 @@
+import React, { useState } from 'react'
+import { Send, Smile, Paperclip, Zap } from 'lucide-react'
+
+interface WeTalkInputProps {
+  onSendMessage: (message: string) => void
+  disabled?: boolean
+}
+
+const WeTalkInput: React.FC<WeTalkInputProps> = ({ onSendMessage, disabled = false }) => {
+  const [message, setMessage] = useState('')
+
+  const handleSendMessage = () => {
+    if (!message.trim() || disabled) return
+    
+    onSendMessage(message)
+    setMessage('')
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSendMessage()
+    }
+  }
+
+  const quickActions = [
+    { label: '👋 Hi', text: 'Hi there! 👋' },
+    { label: '👍 Thanks', text: 'Thank you so much! 👍' },
+    { label: '😊 Great!', text: 'That sounds great! 😊' },
+  ]
+
+  const handleQuickAction = (text: string) => {
+    onSendMessage(text)
+  }
+
+  return (
+    <div className="bg-white/90 backdrop-blur-sm border-t border-white/50 p-4">
+      <div className="flex items-center space-x-3">
+        <button 
+          className="p-3 text-gray-500 hover:text-purple-500 hover:bg-purple-50 rounded-full transition-all"
+          title="Attach file"
+        >
+          <Paperclip className="w-5 h-5" />
+        </button>
+        
+        <div className="flex-1 relative">
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Type a message..."
+            disabled={disabled}
+            rows={1}
+            className="w-full px-6 py-4 bg-gray-50 border-0 rounded-full focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all pr-12 resize-none overflow-hidden"
+            style={{ minHeight: '56px', maxHeight: '120px' }}
+          />
+          <button 
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-500 hover:text-purple-500 transition-colors"
+            title="Add emoji"
+          >
+            <Smile className="w-5 h-5" />
+          </button>
+        </div>
+
+        <button
+          onClick={handleSendMessage}
+          disabled={!message.trim() || disabled}
+          className="p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:hover:scale-100"
+          title={message.trim() ? 'Send message' : 'Type a message to send'}
+        >
+          {message.trim() ? <Send className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
+        </button>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="flex items-center space-x-2 mt-3">
+        <span className="text-xs text-gray-500">Quick actions:</span>
+        {quickActions.map((action, index) => (
+          <button
+            key={index}
+            onClick={() => handleQuickAction(action.text)}
+            disabled={disabled}
+            className="px-3 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-600 rounded-full text-xs hover:from-purple-200 hover:to-pink-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {action.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default WeTalkInput 

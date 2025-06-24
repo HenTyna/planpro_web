@@ -9,6 +9,7 @@ export enum Path {
     LOGIN = "/login",
     REGISTER = "/register",
     TELEGRAM = "/telegram",
+    WE_TALK = "/we-talk",
     
 }
 

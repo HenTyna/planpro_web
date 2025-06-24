@@ -1,6 +1,7 @@
 import { Path } from "@/utils/enum"
 import {
     AlertCircle,
+    Bot,
     Calendar1,
     ChartAreaIcon,
     ChevronLeft,
@@ -9,6 +10,7 @@ import {
     ListTodo,
     MessageCircle,
     MessageCircleDashed,
+    MessageCircleDashedIcon,
     Notebook,
     Plane,
     Sparkles,
@@ -256,7 +258,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                     </Link>
                     <Link href={Path.CHAT}>
                         <SidebarItem
-                            icon={<MessageCircle size={20} />}
+                            icon={<Bot size={20} />}
                             text="Chat AI"
                             active={currentPath === Path.CHAT}
                             collapsed={!isOpen}
@@ -274,6 +276,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                         />
                     </Link>
 
+                    <Link href={Path.WE_TALK}>
+                        <SidebarItem
+                            icon={<MessageCircle size={20} />}
+                            text="We-Talk"
+                            active={currentPath === Path.WE_TALK}
+                            collapsed={!isOpen}
+                            color="purple"
+                        />
+                    </Link>
                     {isOpen && (
                         <div className="mt-8 mb-3 px-3">
                             <div className="relative">
