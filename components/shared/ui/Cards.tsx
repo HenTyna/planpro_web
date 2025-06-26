@@ -3,7 +3,7 @@ import Image from 'next/image';
 import taskIcon from '@/assets/task-icon.png'; // Adjust path
 import { formatDateCard } from '@/utils/dateformat';
 
-const Cards = ({ todo }: { todo: unknown }) => (
+const Cards = ({ todo }: { todo: any }) => (
     <div className="bg-white rounded-xl shadow p-4 mt-4 flex flex-col gap-2">
         <h2 className="font-semibold text-lg text-gray-800">{todo.title}</h2>
 

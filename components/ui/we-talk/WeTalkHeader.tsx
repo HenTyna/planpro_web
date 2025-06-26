@@ -1,13 +1,14 @@
 import React from 'react'
-import { Phone, Video, Heart } from 'lucide-react'
-import { Contact } from '@/lib/hooks/useFetchWeTalks'
+import { Phone, Video, Heart, Wifi, WifiOff } from 'lucide-react'
+import { Contact, MyContact } from '@/lib/types/weTalk.types'
 
 interface WeTalkHeaderProps {
-  activeContact: Contact | null
+  activeContact: MyContact | null
   isTyping: boolean
   onCallClick: () => void
   onVideoClick: () => void
   onHeartClick: () => void
+  isWebSocketConnected?: boolean
 }
 
 const WeTalkHeader: React.FC<WeTalkHeaderProps> = ({
@@ -15,58 +16,89 @@ const WeTalkHeader: React.FC<WeTalkHeaderProps> = ({
   isTyping,
   onCallClick,
   onVideoClick,
-  onHeartClick
+  onHeartClick,
+  isWebSocketConnected = false
 }) => {
   if (!activeContact) {
     return (
-      <div className="bg-white/90 backdrop-blur-sm border-b border-white/50 px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-center">
-          <p className="text-gray-500">Select a contact to start chatting</p>
+      <div className="bg-white/90 backdrop-blur-sm border-b border-white/50 p-6 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">Select a conversation</h2>
+            <p className="text-gray-500">Choose someone to start chatting</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            {isWebSocketConnected ? (
+              <div className="flex items-center space-x-1 text-green-600">
+                <Wifi className="w-4 h-4" />
+                <span className="text-sm">Connected</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-1 text-red-600">
+                <WifiOff className="w-4 h-4" />
+                <span className="text-sm">Disconnected</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm border-b border-white/50 px-6 py-4 shadow-sm">
+    <div className="bg-white/90 backdrop-blur-sm border-b border-white/50 p-6 shadow-lg">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="relative">
             <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${activeContact.gradient} flex items-center justify-center text-xl shadow-lg`}>
-              {activeContact.avatar}
+              {activeContact.avatarUrl}
             </div>
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
+            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+              activeContact.status === 'online' ? 'bg-green-400' : 
+              activeContact.status === 'away' ? 'bg-yellow-400' : 'bg-gray-400'
+            }`}></div>
           </div>
+          
           <div>
-            <h2 className="font-bold text-gray-900">{activeContact.name}</h2>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm text-green-600 font-medium">Online</span>
-              {isTyping && (
-                <>
-                  <span className="text-gray-300">•</span>
-                  <span className="text-sm text-purple-600 animate-pulse">typing...</span>
-                </>
-              )}
-            </div>
+            <h2 className="text-xl font-semibold text-gray-800">{activeContact.username}</h2>
+            <p className={`text-sm ${isTyping ? 'text-purple-500 animate-pulse' : 'text-gray-500'}`}>
+              {isTyping ? 'Typing...' : `${activeContact.status.charAt(0).toUpperCase() + activeContact.status.slice(1)}`}
+            </p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <button 
+
+        <div className="flex items-center space-x-3">
+          {/* WebSocket Status */}
+          {isWebSocketConnected ? (
+            <div className="flex items-center space-x-1 text-green-600">
+              <Wifi className="w-4 h-4" />
+              <span className="text-xs">Live</span>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-1 text-orange-600">
+              <WifiOff className="w-4 h-4" />
+              <span className="text-xs">Offline</span>
+            </div>
+          )}
+          
+          {/* Action Buttons */}
+          <button
             onClick={onCallClick}
-            className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg hover:shadow-xl"
+            className="p-3 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
           >
             <Phone className="w-5 h-5" />
           </button>
-          <button 
+          
+          <button
             onClick={onVideoClick}
-            className="p-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full hover:from-green-600 hover:to-emerald-600 transition-all shadow-lg hover:shadow-xl"
+            className="p-3 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
           >
             <Video className="w-5 h-5" />
           </button>
-          <button 
+          
+          <button
             onClick={onHeartClick}
-            className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl"
+            className="p-3 rounded-full bg-gradient-to-r from-pink-400 to-rose-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
           >
             <Heart className="w-5 h-5" />
           </button>

@@ -1,24 +1,42 @@
-import React from 'react'
-import { Search, Settings, Users, Star, Plus, Sparkles, MessageCircle } from 'lucide-react'
-import { Contact } from '@/lib/hooks/useFetchWeTalks'
+import React, { useState } from 'react'
+import { Search, Settings, Users, Star, Plus, MessageCircle, ChevronDown, UserPlus, AlertCircle, RefreshCw } from 'lucide-react'
+import { Contact, MyContact } from '@/lib/types/weTalk.types'
+import { formatHHmmss } from '@/utils/dateformat'
 
 interface WeTalkSidebarProps {
   contacts: Contact[]
-  activeContact: Contact | null
-  onContactSelect: (contact: Contact) => void
-  onNewChat: () => void
+  myContacts: MyContact[]
+  activeContact: MyContact | null
+  onContactSelect: (contact: MyContact) => void
+  onShowUserSelection: () => void
+  onShowGroupCreator: () => void
   isLoading: boolean
+  hasError?: boolean
+  onRetry?: () => void
 }
 
 const WeTalkSidebar: React.FC<WeTalkSidebarProps> = ({
   contacts,
+  myContacts,
   activeContact,
   onContactSelect,
-  onNewChat,
-  isLoading
+  onShowUserSelection,
+  onShowGroupCreator,
+  isLoading,
+  hasError = false,
+  onRetry
 }) => {
-  const onlineCount = contacts.filter(contact => contact.status === 'online').length
-  const starredCount = contacts.filter(contact => contact.unreadCount > 0).length
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showChatMenu, setShowChatMenu] = useState(false)
+  
+  const onlineCount = myContacts.filter(contact => contact.status === 'online').length
+  const starredCount = myContacts.filter(contact => contact.unreadCount > 0).length
+
+  // Filter contacts based on search term
+  const filteredContacts = myContacts.filter(contact =>
+    contact.username.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+  console.log(contacts)
 
   return (
     <div className="w-80 bg-white/80 backdrop-blur-sm border-r border-white/50 shadow-xl relative z-10">
@@ -33,14 +51,50 @@ const WeTalkSidebar: React.FC<WeTalkSidebarProps> = ({
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
               </div>
               <div>
-                <h1 className="text-xl font-bold">WeTalk</h1>
-                <p className="text-white/80 text-sm">Connect & Share</p>
+                <h1 className="text-xl font-bold">WeTalk Users</h1>
+                <p className="text-white/80 text-sm">Previous Conversations</p>
               </div>
             </div>
             <div className="flex space-x-2">
-              <button className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
-                <Search className="w-4 h-4" />
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setShowChatMenu(!showChatMenu)}
+                  className="flex items-center space-x-2 px-3 py-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+                  title="Start new chat"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="text-sm font-medium">Chat</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                
+                {/* Chat Menu Dropdown */}
+                {showChatMenu && (
+                  <div className="cursor-pointer absolute top-12 right-0 bg-white rounded-lg shadow-lg border border-gray-100 py-2 min-w-[180px] z-50">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onShowUserSelection()
+                        setShowChatMenu(false)
+                      }}
+                      className="cursor-pointer w-full flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4 text-purple-500" />
+                      <span className="cursor-pointer">Message User</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onShowGroupCreator()
+                        setShowChatMenu(false)
+                      }}
+                      className="cursor-pointer w-full flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <UserPlus className="w-4 h-4 text-green-500" />
+                      <span className="cursor-pointer">Create Group</span>
+                    </button>
+                  </div>
+                )}
+              </div>
               <button className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
                 <Settings className="w-4 h-4" />
               </button>
@@ -55,7 +109,7 @@ const WeTalkSidebar: React.FC<WeTalkSidebarProps> = ({
             </div>
             <div className="flex items-center space-x-1">
               <Star className="w-4 h-4" />
-              <span>{starredCount} starred</span>
+              <span>{starredCount} unread</span>
             </div>
           </div>
         </div>
@@ -68,46 +122,100 @@ const WeTalkSidebar: React.FC<WeTalkSidebarProps> = ({
           <input
             type="text"
             placeholder="Search conversations..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
           />
         </div>
       </div>
 
+      {/* Error State */}
+      {hasError && (
+        <div className="mx-4 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-red-700">Failed to load contacts</p>
+            </div>
+            {onRetry && (
+              <button
+                onClick={onRetry}
+                className="flex items-center space-x-1 px-2 py-1 bg-red-100 hover:bg-red-200 rounded text-red-700 text-xs transition-colors"
+              >
+                <RefreshCw className="w-3 h-3" />
+                <span>Retry</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Contacts List */}
-      <div className="flex-1 overflow-y-auto px-2">
+      <div className="flex-1 overflow-y-auto px-2 pb-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
           </div>
         ) : (
-          contacts.map((contact) => (
-            <ContactItem
-              key={contact.id}
-              contact={contact}
-              isActive={activeContact?.id === contact.id}
-              onClick={() => onContactSelect(contact)}
-            />
-          ))
+          <>
+            {filteredContacts.length > 0 ? (
+              <div className="space-y-1">
+                {filteredContacts.map((contact) => (
+                  <ContactItem
+                    key={contact.userId}
+                    contact={contact}
+                    isActive={activeContact?.userId === contact.userId}
+                    onClick={() => onContactSelect(contact)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-500 mb-2">
+                  {searchTerm ? 'No conversations found' : 'No conversations yet'}
+                </h3>
+                <p className="text-gray-400 mb-4">
+                  {searchTerm 
+                    ? 'Try adjusting your search terms' 
+                    : 'Start a new conversation with someone!'
+                  }
+                </p>
+                {!searchTerm && (
+                  <div className="flex flex-col space-y-2">
+                    <button 
+                      onClick={onShowUserSelection}
+                      className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl"
+                    >
+                      Find Users
+                    </button>
+                    <button 
+                      onClick={onShowGroupCreator}
+                      className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all shadow-lg hover:shadow-xl"
+                    >
+                      Create Group
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {/* New Chat Button */}
-      <div className="p-4">
-        <button 
-          onClick={onNewChat}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2"
-        >
-          <Plus className="w-5 h-5" />
-          <span>New Chat</span>
-          <Sparkles className="w-4 h-4" />
-        </button>
-      </div>
+      {/* Overlay to close dropdown when clicking outside */}
+      {showChatMenu && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowChatMenu(false)}
+        />
+      )}
     </div>
   )
 }
 
 interface ContactItemProps {
-  contact: Contact
+  contact: MyContact
   isActive: boolean
   onClick: () => void
 }
@@ -122,7 +230,7 @@ const ContactItem: React.FC<ContactItemProps> = ({ contact, isActive, onClick })
     >
       <div className="relative">
         <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${contact.gradient} flex items-center justify-center text-xl shadow-lg`}>
-          {contact.avatar}
+          {contact.avatarUrl}
         </div>
         <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
           contact.status === 'online' ? 'bg-green-400' : 
@@ -136,8 +244,8 @@ const ContactItem: React.FC<ContactItemProps> = ({ contact, isActive, onClick })
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900 truncate">{contact.name}</h3>
-          <span className="text-xs text-gray-500">2m</span>
+          <h3 className="font-semibold text-gray-900 truncate">{contact.username}</h3>
+          <span className="text-xs text-gray-500">{formatHHmmss(contact.lastMessageTime)}</span>
         </div>
         <p className="text-sm text-gray-600 truncate">{contact.lastMessage}</p>
         {contact.isTyping && (

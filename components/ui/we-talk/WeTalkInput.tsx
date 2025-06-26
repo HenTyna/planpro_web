@@ -4,14 +4,19 @@ import { Send, Smile, Paperclip, Zap } from 'lucide-react'
 interface WeTalkInputProps {
   onSendMessage: (message: string) => void
   disabled?: boolean
+  isSending?: boolean
 }
 
-const WeTalkInput: React.FC<WeTalkInputProps> = ({ onSendMessage, disabled = false }) => {
+const WeTalkInput: React.FC<WeTalkInputProps> = ({ onSendMessage, disabled = false, isSending = false }) => {
   const [message, setMessage] = useState('')
 
   const handleSendMessage = () => {
-    if (!message.trim() || disabled) return
+    if (!message.trim() || disabled || isSending) {
+      console.log('Cannot send message:', { messageEmpty: !message.trim(), disabled, isSending })
+      return
+    }
     
+    console.log('WeTalkInput: Sending message:', message)
     onSendMessage(message)
     setMessage('')
   }
@@ -30,8 +35,12 @@ const WeTalkInput: React.FC<WeTalkInputProps> = ({ onSendMessage, disabled = fal
   ]
 
   const handleQuickAction = (text: string) => {
-    onSendMessage(text)
+    if (!disabled && !isSending) {
+      onSendMessage(text)
+    }
   }
+
+  const isInputDisabled = disabled || isSending
 
   return (
     <div className="bg-white/90 backdrop-blur-sm border-t border-white/50 p-4">
@@ -39,6 +48,7 @@ const WeTalkInput: React.FC<WeTalkInputProps> = ({ onSendMessage, disabled = fal
         <button 
           className="p-3 text-gray-500 hover:text-purple-500 hover:bg-purple-50 rounded-full transition-all"
           title="Attach file"
+          disabled={isInputDisabled}
         >
           <Paperclip className="w-5 h-5" />
         </button>
@@ -48,8 +58,8 @@ const WeTalkInput: React.FC<WeTalkInputProps> = ({ onSendMessage, disabled = fal
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type a message..."
-            disabled={disabled}
+            placeholder={isSending ? "Sending..." : "Type a message..."}
+            disabled={isInputDisabled}
             rows={1}
             className="w-full px-6 py-4 bg-gray-50 border-0 rounded-full focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all pr-12 resize-none overflow-hidden"
             style={{ minHeight: '56px', maxHeight: '120px' }}
@@ -57,6 +67,7 @@ const WeTalkInput: React.FC<WeTalkInputProps> = ({ onSendMessage, disabled = fal
           <button 
             className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-500 hover:text-purple-500 transition-colors"
             title="Add emoji"
+            disabled={isInputDisabled}
           >
             <Smile className="w-5 h-5" />
           </button>
@@ -64,11 +75,17 @@ const WeTalkInput: React.FC<WeTalkInputProps> = ({ onSendMessage, disabled = fal
 
         <button
           onClick={handleSendMessage}
-          disabled={!message.trim() || disabled}
+          disabled={!message.trim() || isInputDisabled}
           className="p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:hover:scale-100"
-          title={message.trim() ? 'Send message' : 'Type a message to send'}
+          title={message.trim() ? (isSending ? 'Sending...' : 'Send message') : 'Type a message to send'}
         >
-          {message.trim() ? <Send className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
+          {isSending ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+          ) : message.trim() ? (
+            <Send className="w-5 h-5" />
+          ) : (
+            <Zap className="w-5 h-5" />
+          )}
         </button>
       </div>
 
@@ -79,7 +96,7 @@ const WeTalkInput: React.FC<WeTalkInputProps> = ({ onSendMessage, disabled = fal
           <button
             key={index}
             onClick={() => handleQuickAction(action.text)}
-            disabled={disabled}
+            disabled={isInputDisabled}
             className="px-3 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-600 rounded-full text-xs hover:from-purple-200 hover:to-pink-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {action.label}

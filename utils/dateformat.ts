@@ -71,3 +71,16 @@ export const formatDateToYYYYMMDD = (date: string) => {
 }
 
 
+export const formatHHmmss = (time: string) => {
+  const timeArray = time.split(":")
+  const hours = parseInt(timeArray[0])
+  const minutes = parseInt(timeArray[1])
+  const seconds = parseInt(timeArray[2])
+
+  if (hours > 0) return `${hours}h`
+  if (minutes > 0) return `${minutes}m`
+  if (seconds > 0) return `${seconds}s`
+  
+  return '0s'
+}
+
