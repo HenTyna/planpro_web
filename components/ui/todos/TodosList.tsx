@@ -1,6 +1,6 @@
 import { Button } from '@/components/shared/ui/Button'
 import { Clock, MoreHorizontal, Plus } from 'lucide-react'
-import React from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import todos from "@/public/asset/todo.jpg"
 import progress from "@/public/asset/progress.jpg"
@@ -73,6 +73,9 @@ const kanbanColumns = [
     },
 ]
 const TodosList = () => {
+    const [isShowDetail, setIsShowDetail] = useState(false);
+    
+
     return (
         <div className="h-screen">
             <div className="mb-6 relative">
