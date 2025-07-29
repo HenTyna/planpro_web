@@ -1,12 +1,15 @@
-import React, { useRef, useEffect } from 'react'
-import { AlertCircle, RefreshCw, ChevronUp } from 'lucide-react'
+import React, { useRef, useEffect, useCallback } from 'react'
+import { AlertCircle, RefreshCw, ChevronUp, User } from 'lucide-react'
 import { Message, Contact, MyContact } from '@/lib/types/weTalk.types'
 import { formatDate, formatDateTime } from '@/utils/dateformat'
+import Image from 'next/image'
+import { useFetchProfile } from '@/lib/hooks/useFetchProfile'
 
 interface WeTalkMessagesProps {
   messages: Message[]
   activeContact: MyContact | null
   isTyping: boolean
+  typingUsers?: string[]
   isLoading: boolean
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
@@ -19,6 +22,7 @@ const WeTalkMessages: React.FC<WeTalkMessagesProps> = ({
   messages,
   activeContact,
   isTyping,
+  typingUsers = [],
   isLoading,
   hasNextPage = false,
   isFetchingNextPage = false,
@@ -28,21 +32,44 @@ const WeTalkMessages: React.FC<WeTalkMessagesProps> = ({
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const isScrolledToBottomRef = useRef(true)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior })
+  }, [])
 
-  useEffect(scrollToBottom, [messages])
+  // Check if user is scrolled to bottom
+  const checkScrollPosition = useCallback(() => {
+    if (!messagesContainerRef.current) return
+    
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10 // 10px threshold
+    isScrolledToBottomRef.current = isAtBottom
+  }, [])
 
-  const handleScroll = () => {
+  // Scroll to bottom when new messages arrive (only if user was already at bottom)
+  useEffect(() => {
+    if (isScrolledToBottomRef.current) {
+      scrollToBottom()
+    }
+  }, [messages, scrollToBottom])
+
+  // Scroll to bottom when conversation changes
+  useEffect(() => {
+    scrollToBottom('instant')
+    isScrolledToBottomRef.current = true
+  }, [activeContact?.conversationId, scrollToBottom])
+
+  const handleScroll = useCallback(() => {
+    checkScrollPosition()
+    
     if (!messagesContainerRef.current || !onLoadMore || !hasNextPage || isFetchingNextPage) return
 
     const { scrollTop } = messagesContainerRef.current
     if (scrollTop === 0) {
       onLoadMore()
     }
-  }
+  }, [onLoadMore, hasNextPage, isFetchingNextPage, checkScrollPosition])
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -134,8 +161,12 @@ const WeTalkMessages: React.FC<WeTalkMessagesProps> = ({
         />
       ))}
 
-      {isTyping && activeContact && (
-        <TypingIndicator activeContact={activeContact} />
+      {/* Show typing indicators from other users */}
+      {typingUsers.length > 0 && (
+        <TypingIndicator 
+          activeContact={activeContact} 
+          typingUsers={typingUsers}
+        />
       )}
 
       <div ref={messagesEndRef} />
@@ -149,6 +180,7 @@ interface MessageBubbleProps {
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({ message, activeContact }) => {
+  const { data: profile } = useFetchProfile()
   return (
     <div
       className={`flex items-end space-x-3 animate-fadeIn mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'
@@ -157,7 +189,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, activeContact })
       {/* Contact Avatar - Left side for contact messages */}
       {message.sender === 'other' && activeContact && (
         <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${activeContact.gradient} flex items-center justify-center text-lg flex-shrink-0 shadow-md border-2 border-white`}>
-          {message.avatar || activeContact.avatarUrl}
+          {
+            profile?.profile_image_url ? (
+              <Image src={profile?.profile_image_url || profile} alt="Contact Avatar" width={34} height={34} className='rounded-full'/>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-gray-600 to-gray-800 flex items-center justify-center text-lg flex-shrink-0 text-white shadow-md border-2 border-white">
+                <User className="w-4 h-4" />
+              </div>
+            )
+          }
         </div>
       )}
 
@@ -193,7 +233,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, activeContact })
       {/* User Avatar - Right side for user messages */}
       {message.sender === 'user' && (
         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-gray-600 to-gray-800 flex items-center justify-center text-lg flex-shrink-0 text-white shadow-md border-2 border-white">
-          👤
+          {
+            profile?.profile_image_url ? (
+              <Image src={profile?.profile_image_url || profile} alt="User Avatar" width={34} height={34} className='rounded-full'/>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-gray-600 to-gray-800 flex items-center justify-center text-lg flex-shrink-0 text-white shadow-md border-2 border-white">
+                <User className="w-4 h-4" />
+              </div>
+            )
+          }
         </div>
       )}
     </div>
@@ -215,20 +263,31 @@ const MessageStatus: React.FC<MessageStatusProps> = ({ status }) => {
 }
 
 interface TypingIndicatorProps {
-  activeContact: MyContact
+  activeContact: MyContact | null
+  typingUsers: string[]
 }
 
-const TypingIndicator: React.FC<TypingIndicatorProps> = ({ activeContact }) => {
+const TypingIndicator: React.FC<TypingIndicatorProps> = ({ activeContact, typingUsers }) => {
+  if (typingUsers.length === 0) return null
+
   return (
     <div className="flex items-end space-x-2 animate-fadeIn">
-      <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${activeContact.gradient} flex items-center justify-center text-sm`}>
-        {activeContact.avatarUrl}
+      <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${activeContact?.gradient || 'from-gray-400 to-gray-600'} flex items-center justify-center text-sm`}>
+        <Image src={activeContact?.avatarUrl || ''} alt="Contact Avatar" width={32} height={32} />
       </div>
       <div className="bg-white px-4 py-3 rounded-2xl rounded-bl-none shadow-lg border border-gray-100">
-        <div className="flex space-x-1">
-          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce animation-delay-200"></div>
-          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce animation-delay-400"></div>
+        <div className="flex items-center space-x-2">
+          <div className="flex space-x-1">
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce animation-delay-200"></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce animation-delay-400"></div>
+          </div>
+          <span className="text-xs text-gray-500">
+            {typingUsers.length === 1 
+              ? `${typingUsers[0]} is typing...`
+              : `${typingUsers.join(', ')} are typing...`
+            }
+          </span>
         </div>
       </div>
     </div>

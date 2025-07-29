@@ -1,14 +1,71 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Send, Smile, Paperclip, Zap } from 'lucide-react'
 
 interface WeTalkInputProps {
   onSendMessage: (message: string) => void
+  onTypingIndicator?: (isTyping: boolean) => void
   disabled?: boolean
   isSending?: boolean
 }
 
-const WeTalkInput: React.FC<WeTalkInputProps> = ({ onSendMessage, disabled = false, isSending = false }) => {
+const WeTalkInput: React.FC<WeTalkInputProps> = ({ 
+  onSendMessage, 
+  onTypingIndicator,
+  disabled = false, 
+  isSending = false 
+}) => {
   const [message, setMessage] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
+  const typingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+
+  // Handle typing indicator
+  const handleTyping = (typing: boolean) => {
+    if (isTyping !== typing) {
+      setIsTyping(typing)
+      onTypingIndicator?.(typing)
+    }
+  }
+
+  // Clear typing timeout
+  const clearTypingTimeout = () => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+  }
+
+  // Handle input change with typing indicator
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value
+    setMessage(value)
+    
+    // Start typing indicator
+    if (!isTyping && value.length > 0) {
+      handleTyping(true)
+    }
+    
+    // Clear existing timeout
+    clearTypingTimeout()
+    
+    // Set timeout to stop typing indicator
+    if (value.length > 0) {
+      typingTimeoutRef.current = setTimeout(() => {
+        handleTyping(false)
+      }, 2000) // Stop typing indicator after 2 seconds of no input
+    } else {
+      handleTyping(false)
+    }
+  }
+
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      clearTypingTimeout()
+      if (isTyping) {
+        handleTyping(false)
+      }
+    }
+  }, [isTyping])
 
   const handleSendMessage = () => {
     if (!message.trim() || disabled || isSending) {
@@ -19,6 +76,10 @@ const WeTalkInput: React.FC<WeTalkInputProps> = ({ onSendMessage, disabled = fal
     console.log('WeTalkInput: Sending message:', message)
     onSendMessage(message)
     setMessage('')
+    
+    // Stop typing indicator when sending
+    clearTypingTimeout()
+    handleTyping(false)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -56,8 +117,17 @@ const WeTalkInput: React.FC<WeTalkInputProps> = ({ onSendMessage, disabled = fal
         <div className="flex-1 relative">
           <textarea
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={handleInputChange}
             onKeyPress={handleKeyPress}
+            onFocus={() => {
+              if (message.length > 0) {
+                handleTyping(true)
+              }
+            }}
+            onBlur={() => {
+              clearTypingTimeout()
+              handleTyping(false)
+            }}
             placeholder={isSending ? "Sending..." : "Type a message..."}
             disabled={isInputDisabled}
             rows={1}

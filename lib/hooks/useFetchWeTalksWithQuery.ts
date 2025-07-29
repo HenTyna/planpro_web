@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import {
   Message,
@@ -10,12 +10,13 @@ import {
 } from '@/lib/types/weTalk.types'
 import { useWeTalkQueries } from './weTalk/useWeTalkQueries'
 import { useWebSocket } from './useWebSocket'
+import { WEBSOCKET_CONFIG } from '@/lib/config/websocket'
 
 const useFetchWeTalksWithQuery = () => {
   const { data: session } = useSession()
   const [activeContact, setActiveContact] = useState<MyContact | null>(null)
   const [activeConversation, setActiveConversation] = useState<number | null>(null)
-  const [isTyping] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
 
   // Get React Query hooks
   const {
@@ -31,7 +32,6 @@ const useFetchWeTalksWithQuery = () => {
     useMarkAsReadMutation,
     useDeleteMessageMutation,
     useMyContactsQuery,
-
   } = useWeTalkQueries()
 
   // React Query hooks
@@ -55,9 +55,6 @@ const useFetchWeTalksWithQuery = () => {
   const conversations = conversationsQuery.data || []
   const messages = messagesQuery.data?.pages.flatMap((page: Message[]) => page) || []
   const myContacts = myContactsQuery.data || []
-  console.log("myContacts", myContacts)
-  console.log("contacts22", contacts)
-  console.log("conversations", conversations)
 
   // Memoize contacts and conversations to prevent exhaustive deps warnings
   const memoizedContacts = useMemo(() => contacts, [contacts]) 
@@ -69,6 +66,31 @@ const useFetchWeTalksWithQuery = () => {
                 pendingContactsQuery.error?.message ||
                 conversationsQuery.error?.message ||
                 messagesQuery.error?.message
+
+  // Initialize WebSocket for real-time messaging
+  const { 
+    isConnected: wsConnected, 
+    isReconnecting: wsReconnecting,
+    sendMessage: wsSendMessage, 
+    sendTypingIndicator,
+    typingUsers,
+    connectionError: wsConnectionError,
+    retryConnection: wsRetryConnection
+  } = useWebSocket(activeConversation || undefined)
+
+  // Fallback polling when WebSocket is not available
+  useEffect(() => {
+    if (!activeConversation || wsConnected || !WEBSOCKET_CONFIG.FALLBACK.ENABLED) return
+
+    const pollInterval = setInterval(() => {
+      // Refetch messages to get any new ones
+      if (messagesQuery.data) {
+        messagesQuery.refetch()
+      }
+    }, WEBSOCKET_CONFIG.FALLBACK.POLLING_INTERVAL)
+
+    return () => clearInterval(pollInterval)
+  }, [activeConversation, wsConnected, messagesQuery])
 
   // Actions
   const sendMessage = useCallback(async (text: string) => {
@@ -82,6 +104,8 @@ const useFetchWeTalksWithQuery = () => {
         replyToMessageId: undefined
       }
 
+      // Send via HTTP only - WebSocket will handle receiving messages from other users
+      // The HTTP mutation already includes optimistic updates for immediate UI feedback
       await sendMessageMutation.mutateAsync({
         conversationId: activeConversation,
         messageData
@@ -90,6 +114,14 @@ const useFetchWeTalksWithQuery = () => {
       console.error('Failed to send message:', error)
     }
   }, [activeConversation, session?.user?.id, sendMessageMutation])
+
+  // Handle typing indicator
+  const handleTypingIndicator = useCallback((isTyping: boolean) => {
+    setIsTyping(isTyping)
+    if (wsConnected) {
+      sendTypingIndicator(isTyping)
+    }
+  }, [wsConnected, sendTypingIndicator])
 
   const switchContact = useCallback(async (contact: MyContact) => {
     setActiveContact(contact)
@@ -159,9 +191,6 @@ const useFetchWeTalksWithQuery = () => {
     }
   }, [messagesQuery])
 
-  // Initialize WebSocket for real-time messaging
-  const { isConnected: wsConnected, sendMessage: wsSendMessage } = useWebSocket(activeConversation || undefined)
-
   return {
     // Data
     contacts: memoizedContacts,
@@ -176,9 +205,14 @@ const useFetchWeTalksWithQuery = () => {
     
     // Real-time connection status
     isWebSocketConnected: wsConnected,
+    isWebSocketReconnecting: wsReconnecting,
+    typingUsers,
+    wsConnectionError,
+    wsRetryConnection,
 
     // Actions
     sendMessage,
+    handleTypingIndicator,
     switchContact,
     startConversationWithUser,
     addContact,

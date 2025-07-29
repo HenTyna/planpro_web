@@ -147,23 +147,28 @@ export const useWeTalkQueries = () => {
           return []
         }
 
-        return messagesData.map((msg: any): Message => {
-          const isCurrentUser = msg.senderId === currentUserId
-          console.log(`Message ${msg.id}: senderId=${msg.senderId}, currentUserId=${currentUserId}, isCurrentUser=${isCurrentUser}`)
-          
-          return {
-            id: msg.id.toString(),
-            text: msg.content || msg.text || msg.message,
-            sender: isCurrentUser ? 'user' : 'other',
-            timestamp: new Date(msg.createdAt || msg.timestamp || Date.now()),
-            type: msg.messageType || msg.type || 'text',
-            status: msg.status || 'sent',
-            avatar: msg.senderAvatarUrl || msg.avatar,
-            senderName: msg.senderDisplayName || msg.senderUsername || msg.username,
-            conversationId: conversationId,
-            userId: msg.senderId || msg.userId
-          }
-        })
+        // Sort messages by timestamp (oldest first for proper display)
+        const sortedMessages = messagesData
+          .map((msg: any): Message => {
+            const isCurrentUser = msg.senderId === currentUserId
+            console.log(`Message ${msg.id}: senderId=${msg.senderId}, currentUserId=${currentUserId}, isCurrentUser=${isCurrentUser}`)
+            
+            return {
+              id: msg.id.toString(),
+              text: msg.content || msg.text || msg.message,
+              sender: isCurrentUser ? 'user' : 'other',
+              timestamp: new Date(msg.createdAt || msg.timestamp || Date.now()),
+              type: msg.messageType || msg.type || 'text',
+              status: msg.status || 'sent',
+              avatar: msg.senderAvatarUrl || msg.avatar,
+              senderName: msg.senderDisplayName || msg.senderUsername || msg.username,
+              conversationId: conversationId,
+              userId: msg.senderId || msg.userId
+            }
+          })
+          .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+
+        return sortedMessages
       },
       initialPageParam: 1,
       enabled: !!conversationId,
@@ -254,7 +259,7 @@ export const useWeTalkQueries = () => {
         
         const previousMessages = queryClient.getQueryData(QUERY_KEYS.MESSAGES(conversationIdStr))
         
-        // Add optimistic message
+        // Add optimistic message to BOTTOM (last page)
         const optimisticMessage: Message = {
           id: `temp-${Date.now()}`,
           text: messageData.content,
@@ -268,10 +273,13 @@ export const useWeTalkQueries = () => {
 
         queryClient.setQueryData(QUERY_KEYS.MESSAGES(conversationIdStr), (old: any) => {
           if (!old) return { pages: [[optimisticMessage]], pageParams: [1] }
+          
+          // Add to the last page (bottom) instead of first page (top)
+          const lastPageIndex = old.pages.length - 1
           return {
             ...old,
             pages: old.pages.map((page: Message[], index: number) => 
-              index === 0 ? [optimisticMessage, ...page] : page
+              index === lastPageIndex ? [...page, optimisticMessage] : page
             )
           }
         })
@@ -292,14 +300,19 @@ export const useWeTalkQueries = () => {
         const conversationIdStr = conversationId.toString()
         queryClient.setQueryData(QUERY_KEYS.MESSAGES(conversationIdStr), (old: any) => {
           if (!old) return old
+          
+          // Replace optimistic message with real message
+          const lastPageIndex = old.pages.length - 1
           return {
             ...old,
-            pages: old.pages.map((page: Message[]) => 
-              page.map((msg: Message) => 
-                msg.id === context?.optimisticMessage.id 
-                  ? { ...msg, id: data.data?.id?.toString() || msg.id, status: 'delivered' }
-                  : msg
-              )
+            pages: old.pages.map((page: Message[], index: number) => 
+              index === lastPageIndex 
+                ? page.map((msg: Message) => 
+                    msg.id === context?.optimisticMessage.id 
+                      ? { ...msg, id: data.data?.id?.toString() || msg.id, status: 'delivered' }
+                      : msg
+                  )
+                : page
             )
           }
         })

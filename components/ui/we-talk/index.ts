@@ -1,15 +1,14 @@
-// Main components
+// Components
 export { default as WeTalkContainer } from './WeTalkContainer'
-export { default as WeTalkDemo } from './WeTalkDemo'
-
-// Sub-components
-export { default as WeTalkBackground } from './WeTalkBackground'
 export { default as WeTalkSidebar } from './WeTalkSidebar'
 export { default as WeTalkHeader } from './WeTalkHeader'
 export { default as WeTalkMessages } from './WeTalkMessages'
 export { default as WeTalkInput } from './WeTalkInput'
+export { default as WeTalkBackground } from './WeTalkBackground'
+export { default as WeTalkStatus } from './WeTalkStatus'
+export { default as WeTalkDemo } from './WeTalkDemo'
 
-// Popup components
+// Popups
 export { default as UserSelectionPopup } from './UserSelectionPopup'
 export { default as GroupChatCreator } from './GroupChatCreator'
 

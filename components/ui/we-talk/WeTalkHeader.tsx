@@ -1,5 +1,5 @@
 import React from 'react'
-import { Phone, Video, Heart, Wifi, WifiOff } from 'lucide-react'
+import { Phone, Video, Heart, Wifi, WifiOff, AlertCircle } from 'lucide-react'
 import { Contact, MyContact } from '@/lib/types/weTalk.types'
 
 interface WeTalkHeaderProps {
@@ -9,6 +9,7 @@ interface WeTalkHeaderProps {
   onVideoClick: () => void
   onHeartClick: () => void
   isWebSocketConnected?: boolean
+  wsConnectionError?: string | null
 }
 
 const WeTalkHeader: React.FC<WeTalkHeaderProps> = ({
@@ -17,7 +18,8 @@ const WeTalkHeader: React.FC<WeTalkHeaderProps> = ({
   onCallClick,
   onVideoClick,
   onHeartClick,
-  isWebSocketConnected = false
+  isWebSocketConnected = false,
+  wsConnectionError = null
 }) => {
   if (!activeContact) {
     return (
@@ -28,15 +30,20 @@ const WeTalkHeader: React.FC<WeTalkHeaderProps> = ({
             <p className="text-gray-500">Choose someone to start chatting</p>
           </div>
           <div className="flex items-center space-x-2">
-            {isWebSocketConnected ? (
+            {wsConnectionError ? (
+              <div className="flex items-center space-x-1 text-red-600" title={wsConnectionError}>
+                <AlertCircle className="w-4 h-4" />
+                <span className="text-sm">Connection Error</span>
+              </div>
+            ) : isWebSocketConnected ? (
               <div className="flex items-center space-x-1 text-green-600">
                 <Wifi className="w-4 h-4" />
-                <span className="text-sm">Connected</span>
+                <span className="text-sm">Live</span>
               </div>
             ) : (
-              <div className="flex items-center space-x-1 text-red-600">
+              <div className="flex items-center space-x-1 text-orange-600">
                 <WifiOff className="w-4 h-4" />
-                <span className="text-sm">Disconnected</span>
+                <span className="text-sm">Offline</span>
               </div>
             )}
           </div>
@@ -69,7 +76,12 @@ const WeTalkHeader: React.FC<WeTalkHeaderProps> = ({
 
         <div className="flex items-center space-x-3">
           {/* WebSocket Status */}
-          {isWebSocketConnected ? (
+          {wsConnectionError ? (
+            <div className="flex items-center space-x-1 text-red-600" title={wsConnectionError}>
+              <AlertCircle className="w-4 h-4" />
+              <span className="text-xs">Error</span>
+            </div>
+          ) : isWebSocketConnected ? (
             <div className="flex items-center space-x-1 text-green-600">
               <Wifi className="w-4 h-4" />
               <span className="text-xs">Live</span>

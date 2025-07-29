@@ -6,6 +6,7 @@ import WeTalkSidebar from './WeTalkSidebar'
 import WeTalkHeader from './WeTalkHeader'
 import WeTalkMessages from './WeTalkMessages'
 import WeTalkInput from './WeTalkInput'
+import WeTalkStatus from './WeTalkStatus'
 import UserSelectionPopup from './UserSelectionPopup'
 import GroupChatCreator from './GroupChatCreator'
 import { Contact, MyContact } from '@/lib/types/weTalk.types'
@@ -30,7 +31,9 @@ const WeTalkContainer = () => {
     isTyping,
     error,
     isWebSocketConnected,
+    typingUsers,
     sendMessage,
+    handleTypingIndicator,
     switchContact,
     startConversationWithUser,
     addContact,
@@ -39,7 +42,9 @@ const WeTalkContainer = () => {
     deleteMessage,
     loadMoreMessages,
     queries,
-    mutations
+    mutations,
+    wsConnectionError,
+    wsRetryConnection
   } = useFetchWeTalksWithQuery()
 
   console.log("first")
@@ -203,12 +208,14 @@ const WeTalkContainer = () => {
           onVideoClick={handleVideoClick}
           onHeartClick={handleHeartClick}
           isWebSocketConnected={isWebSocketConnected}
+          // wsConnectionError={wsConnectionError}
         />
 
         <WeTalkMessages
           messages={messages}
           activeContact={activeContact}
           isTyping={isTyping}
+          typingUsers={typingUsers}
           isLoading={queries.messages.isLoading}
           hasNextPage={queries.messages.hasNextPage}
           isFetchingNextPage={queries.messages.isFetchingNextPage}
@@ -219,6 +226,7 @@ const WeTalkContainer = () => {
 
         <WeTalkInput
           onSendMessage={handleSendMessage}
+          onTypingIndicator={handleTypingIndicator}
           disabled={!activeContact || mutations.sendMessage.isPending}
           isSending={mutations.sendMessage.isPending}
         />
@@ -248,6 +256,15 @@ const WeTalkContainer = () => {
         error={undefined}
         onRetry={() => {}}
       />
+
+      {/* WebSocket Status for debugging */}
+      {/* <WeTalkStatus
+        isConnected={isWebSocketConnected}
+        connectionError={wsConnectionError}
+        isTyping={isTyping}
+        typingUsers={typingUsers}
+        onRetry={wsRetryConnection}
+      /> */}
     </div>
   )
 }
