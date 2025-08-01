@@ -318,7 +318,7 @@ const NotesList = () => {
               </div>
             </div>
             <div className="absolute right-6 top-1/2 transform -translate-y-1/2 ">
-              <Image src={todo} alt="Notes illustration" width={150} height={150} />
+              <Image src={todo} alt="Notes illustration" width={150} height={150} unoptimized />
             </div>
           </div>
         </div>

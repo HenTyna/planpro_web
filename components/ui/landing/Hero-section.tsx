@@ -79,6 +79,7 @@ export default function HeroSection() {
               width={800}
               height={600}
               className="w-full h-auto"
+              unoptimized
             />
           </div>
           <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-yellow-400 rounded-full opacity-70 blur-xl"></div>

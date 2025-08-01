@@ -23,8 +23,10 @@ type EventDetailModelProps = {
 
 // Event Details Modal Component
 const EventDetailModel = ({ event, onClose, onEdit, onDelete }: EventDetailModelProps) => {
-    if (!event) return null
     const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+    
+    if (!event) return null
+    
     // Ensure categoryId is compared as string
     const category = eventCategories.find((c) => c.id === String(event.categoryId))
 

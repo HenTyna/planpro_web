@@ -137,6 +137,7 @@ export default function KanbanSection() {
                                 width={220}
                                 height={80}
                                 className="w-full h-30 object-cover"
+                                unoptimized
                               />
                             </div>
                           )}

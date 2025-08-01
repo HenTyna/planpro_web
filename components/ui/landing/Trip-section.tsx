@@ -41,6 +41,7 @@ export default function TripSection() {
                     width={600}
                     height={400}
                     className="w-full h-full object-cover"
+                    unoptimized
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">

@@ -32,13 +32,14 @@ const tripStatuses = [
 ]
 // Trip Details Modal Component
 const TripDetailsModal = ({ trip, onClose, onEdit, onDelete }: any) => {
+    const [showDelete, setShowDelete] = useState(false)
+    
     if (!trip) return null
 
     const category = tripCategories.find((c) => c.name === trip.category)
     const status = tripStatuses.find((s) => s.name === trip.status)
     const tripDuration = getDaysBetween(trip.startDate, trip.endDate)
     const daysUntilTrip = getDaysUntilTrip(trip.startDate)
-    const [showDelete, setShowDelete] = useState(false)
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fadeIn">

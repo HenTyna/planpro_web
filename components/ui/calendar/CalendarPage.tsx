@@ -432,7 +432,7 @@ const CalendarPage = () => {
                             </div>
                         </div>
                         <div className="absolute right-6 top-1/2 transform -translate-y-1/2">
-                            <Image src={CalendarPic} alt="Calendar illustration" width={120} height={120} />
+                            <Image src={CalendarPic} alt="Calendar illustration" width={120} height={120} unoptimized />
                         </div>
                     </div>
                 </div>

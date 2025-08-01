@@ -112,7 +112,7 @@ const TodosList = () => {
                         </div>
                     </div>
                     <div className="absolute right-6 top-1/2 transform -translate-y-1/2">
-                        <Image src="/asset/task.png" alt="Tasks illustration" width={120} height={120} />
+                        <Image src="/asset/task.png" alt="Tasks illustration" width={120} height={120} unoptimized />
                     </div>
                 </div>
             </div>
@@ -147,6 +147,7 @@ const TodosList = () => {
                                                     width={220}
                                                     height={80}
                                                     className="w-full h-30 object-cover"
+                                                    unoptimized
                                                 />
                                             </div>
                                         )}

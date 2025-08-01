@@ -56,8 +56,8 @@ function getApiCategoryId(event: CalendarEvent | null): string {
 
 // Event Modal Component
 const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: EventModalProps) => {
-    if (!event) return null;
     const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+    
     // useForm setup
     const {
         register,
@@ -79,6 +79,8 @@ const EventModal = ({ event, onClose, onSave, onDelete, isNew = false }: EventMo
             attendees: event?.attendees?.join(", ") || "",
         },
     })
+    
+    if (!event) return null;
 
     // Save handler: match API request shape
     const onSubmit = (data: EventFormData) => {

@@ -5,7 +5,6 @@ import { WeTalkContainer } from './index'
 // Conditionally import devtools
 let ReactQueryDevtools: React.ComponentType<any> | null = null
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const devtools = require('@tanstack/react-query-devtools')
   ReactQueryDevtools = devtools.ReactQueryDevtools
 } catch {

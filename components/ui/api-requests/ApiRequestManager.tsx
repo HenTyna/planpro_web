@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useApiRequests } from '@/lib/hooks/useApiRequests'
 import { ApiRequest, ApiResponse } from '@/service/openApiTool.service'
 import { Button } from '@/components/shared/ui/Button'
@@ -30,18 +30,18 @@ const ApiRequestManager: React.FC = () => {
         body: ''
     })
 
-    useEffect(() => {
-        loadRequests()
-    }, [])
-
-    const loadRequests = async () => {
+    const loadRequests = useCallback(async () => {
         try {
             const response = await getRequests()
             setRequests(response.data || [])
         } catch (err) {
             console.error('Failed to load requests:', err)
         }
-    }
+    }, [])
+
+    useEffect(() => {
+        loadRequests()
+    }, [loadRequests])
 
     const handleCreateRequest = async (e: React.FormEvent) => {
         e.preventDefault()
