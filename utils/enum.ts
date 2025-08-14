@@ -10,6 +10,7 @@ export enum Path {
     REGISTER = "/register",
     TELEGRAM = "/telegram",
     WE_TALK = "/we-talk",
+    CHAT_PAGE = "/chat",
     
 }
 

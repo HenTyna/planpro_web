@@ -276,11 +276,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                         />
                     </Link>
 
-                    <Link href={Path.WE_TALK}>
+                    <Link href={Path.CHAT_PAGE}>
                         <SidebarItem
                             icon={<MessageCircle size={20} />}
-                            text="We-Talk"
-                            active={currentPath === Path.WE_TALK}
+                            text="Chat"
+                            active={currentPath === Path.CHAT_PAGE}
                             collapsed={!isOpen}
                             color="purple"
                         />
