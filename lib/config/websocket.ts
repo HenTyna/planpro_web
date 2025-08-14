@@ -4,13 +4,13 @@ export const WEBSOCKET_CONFIG = {
   ENDPOINTS: {
     // Primary WebSocket endpoint (STOMP over SockJS)
     PRIMARY: process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:9090/ws',
-    
+
     // Fallback WebSocket endpoint (direct WebSocket)
     FALLBACK: process.env.NEXT_PUBLIC_WS_FALLBACK_URL || 'ws://localhost:9090/ws',
-    
+
     // SockJS endpoint (must be HTTP/HTTPS, not WebSocket)
     SOCKJS: process.env.NEXT_PUBLIC_SOCKJS_URL || 'http://localhost:9090/ws',
-    
+
     // Alternative endpoints for different environments
     ALTERNATIVES: [
       'http://localhost:9090/ws',
@@ -28,23 +28,23 @@ export const WEBSOCKET_CONFIG = {
     RECONNECT_DELAY: 5000,
     HEARTBEAT_INCOMING: 30000, // Reduced from 4000 to 30000 (30 seconds)
     HEARTBEAT_OUTGOING: 30000, // Reduced from 4000 to 30000 (30 seconds)
-    
+
     // Debug mode
     DEBUG: process.env.NODE_ENV === 'development',
-    
+
     // Message destinations
     DESTINATIONS: {
       // Conversation topics
       CONVERSATION_TOPIC: (conversationId: number) => `/topic/conversation/${conversationId}`,
-      
+
       // User-specific queues
       USER_QUEUE: (userId: number) => `/user/${userId}/queue/messages`,
-      
+
       // Application endpoints
       SEND_MESSAGE: '/app/send-message',
       JOIN_CONVERSATION: '/app/join-conversation',
-      TYPING: '/app/typing',
-      LEAVE_CONVERSATION: '/app/leave-conversation'
+      LEAVE_CONVERSATION: '/app/leave-conversation',
+      TYPING: '/app/typing'
     }
   },
 
@@ -99,7 +99,7 @@ export const WEBSOCKET_CONFIG = {
   TYPING: {
     TIMEOUT: 2000, // Stop typing indicator after 2 seconds
     DEBOUNCE: 300, // Debounce typing events
-    MAX_USERS: 5   // Maximum number of typing users to show
+    MAX_USERS: 5 // Maximum number of typing users to show
   },
 
   // Fallback configuration
@@ -111,12 +111,17 @@ export const WEBSOCKET_CONFIG = {
 }
 
 // Helper functions
-export const createWebSocketUrl = (baseUrl: string, userId?: number): string => {
-  const url = new URL(baseUrl, window.location.origin)
-  if (userId) {
-    url.searchParams.set('userId', userId.toString())
+export const createWebSocketUrl = (baseUrl: string, userId?: number) => {
+  try {
+    if (!baseUrl) return ''
+    const url = new URL(baseUrl)
+    if (userId) {
+      url.searchParams.set('userId', String(userId))
+    }
+    return url.toString()
+  } catch {
+    return baseUrl
   }
-  return url.toString()
 }
 
 export const createStompDestination = (type: 'topic' | 'queue', path: string): string => {
@@ -153,11 +158,11 @@ export const getBestWebSocketEndpoint = (): string => {
   if (process.env.NEXT_PUBLIC_WS_URL) {
     return process.env.NEXT_PUBLIC_WS_URL
   }
-  
+
   if (process.env.NEXT_PUBLIC_SOCKJS_URL) {
     return process.env.NEXT_PUBLIC_SOCKJS_URL
   }
-  
+
   // Fallback to default
   return WEBSOCKET_CONFIG.ENDPOINTS.SOCKJS
 } 

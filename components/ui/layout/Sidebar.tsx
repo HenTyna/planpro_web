@@ -236,7 +236,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                             color="green"
                         />
                     </Link>
-                    <Link href={Path.TODO}>
+                    {/* <Link href={Path.TODO}>
                         <SidebarItem
                             icon={<ListTodo size={20} />}
                             text="Todos"
@@ -245,7 +245,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                             notification={3}
                             color="teal"
                         />
-                    </Link>
+                    </Link> */}
                     <Link href={Path.CALENDAR}>
                         <SidebarItem
                             icon={<Calendar1 size={20} />}
