@@ -15,9 +15,29 @@ async function getTelegramUserInfo() {
     return http.get(ServiceId.TELEGRAM + `/get-telegram-user-info`);
 }
 
+async function disconnectTelegram(chatId: number) {
+    return http.put(ServiceId.TELEGRAM + `/disconnect-telegram/${chatId}`);
+}
+
+async function updateStatusTelegramSettings(chatId: number, isActive: boolean) {
+    return http.put(ServiceId.TELEGRAM + `/telegram-setting/${chatId}/${isActive}`);
+}
+
+async function getTelegramHistory() {
+    return http.get(ServiceId.TELEGRAM + `/get-history-of-telegram-user`);
+}
+
+async function reconnectTelegram(chatId: number) {
+    return http.put(ServiceId.TELEGRAM + `/reconnect-telegram/${chatId}`);
+}
+
 const TelegramService = {
    verifyTelegram,
    connectTelegram,
-   getTelegramUserInfo
+   getTelegramUserInfo,
+   disconnectTelegram,
+   updateStatusTelegramSettings,
+   getTelegramHistory,
+   reconnectTelegram
 }
 export default TelegramService

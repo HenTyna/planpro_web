@@ -34,9 +34,12 @@ export const ConfirmationDialog = ({ show, onConfirm, onClose }: { show: boolean
   if (!show) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fadeIn">
+    <div 
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm notes-modal flex items-center justify-center p-4 animate-modalFadeIn"
+      onClick={onClose}
+    >
       <div
-        className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden animate-scaleIn"
+        className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-modalScaleIn modal-content"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-red-500 p-4 text-white">
@@ -94,46 +97,6 @@ const NotesList = () => {
 
   useEffect(() => {
     setMounted(true)
-    // Add CSS for custom scrollbar and animations
-    const style = document.createElement("style")
-    style.textContent = `
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: rgba(0, 0, 0, 0.1);
-        border-radius: 3px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background-color: rgba(0, 0, 0, 0.2);
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      @keyframes scaleIn {
-        from { transform: scale(0.95); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-      }
-      .animate-fadeIn {
-        animation: fadeIn 0.2s ease-out;
-      }
-      .animate-scaleIn {
-        animation: scaleIn 0.3s ease-out;
-      }
-      .note-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 16px;
-      }
-    `
-    document.head.appendChild(style)
-    return () => {
-      document.head.removeChild(style)
-    }
   }, [])
 
   useEffect(() => {
@@ -290,24 +253,24 @@ const NotesList = () => {
         {/* Header Section */}
         <div className="mb-6 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-400 to-teal-400 opacity-10 rounded-xl"></div>
-          <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-teal-50 rounded-xl p-6 relative shadow-lg border border-white">
+          <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-teal-50 rounded-xl p-6 relative shadow-lg border border-white" style={{zIndex: 1}}>
             {/* Decorative elements */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full opacity-5 translate-x-1/3 -translate-y-1/3"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-400 rounded-full opacity-5 -translate-x-1/3 translate-y-1/3"></div>
 
             <div className="relative z-10">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent mb-2">
+              <h1 className="z-10 text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent mb-2">
                 Notes
               </h1>
-              <div className="text-gray-600 text-sm mb-4">Dashboard • Notes ({notes?.length})</div>
+              <div className="text-gray-600 text-sm mb-4 z-10">Dashboard • Notes ({notes?.length})</div>
               <div className="flex flex-wrap gap-4 text-sm">
-                <div className="bg-white bg-opacity-70 backdrop-blur-sm rounded-lg px-4 py-3 shadow-sm border border-white flex items-center">
+                <div className="z-10 bg-white bg-opacity-70 backdrop-blur-sm rounded-lg px-4 py-3 shadow-sm border border-white flex items-center">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
                     <span className="text-blue-500 font-semibold">{notes?.length}</span>
                   </div>
                   <span className="text-gray-700">Total Notes</span>
                 </div>
-                <div className="bg-white bg-opacity-70 backdrop-blur-sm rounded-lg px-4 py-3 shadow-sm border border-white flex items-center">
+                <div className="z-10 bg-white bg-opacity-70 backdrop-blur-sm rounded-lg px-4 py-3 shadow-sm border border-white flex items-center">
                   <div className="w-20   flex items-center justify-center mr-3">
                     <span className="text-purple-500 font-semibold">
                       {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })},

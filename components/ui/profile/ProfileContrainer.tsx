@@ -5,13 +5,15 @@ import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/shared/ui/Button"
 import { Input } from "@/components/shared/ui/Input"
-import { User, Mail, Phone, Calendar, Camera, Shield, Palette, Edit, Save, X, User2, Loader2 } from "lucide-react"
+import { User, Mail, Phone, Calendar, Camera, Shield, Palette, Edit, Save, X, User2, Loader2, History } from "lucide-react"
 import Image from "next/image"
 import { Label } from "@/components/shared/ui/label"
 import profile from "@/public/asset/profile.jpg"
 import { profileService } from "@/service/profile.service"
 import toast from "react-hot-toast"
 import { useQueryClient } from "@tanstack/react-query"
+import SettingTap from "@/components/ui/profile/SettingTap"
+import TelegramHistory from "./TelegramHistory"
 
 type Props = {
     profile_data: any
@@ -40,8 +42,8 @@ const ProfileContrainer = ({ profile_data, onClose, onUpdate }: Props) => {
 
     const tabs = [
         { id: "personal", label: "Personal", icon: User },
-        { id: "preferences", label: "Preferences", icon: Palette },
-        { id: "security", label: "Security", icon: Shield },
+        { id: "telegram", label: "Telegram", icon: Mail },
+        { id: "history", label: "History", icon: History },
     ]
 
     const handleEdit = () => {
@@ -164,39 +166,41 @@ const ProfileContrainer = ({ profile_data, onClose, onUpdate }: Props) => {
                         </div>
 
                         {/* Edit/Save/Cancel buttons */}
-                        <div className="flex gap-2">
-                            {!isEditing ? (
-                                <Button
-                                    onClick={handleEdit}
-                                    variant="secondary"
-                                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                                >
-                                    <Edit className="w-4 h-4 mr-2" />
-                                    Edit Profile
-                                </Button>
-                            ) : (
-                                <>
+                        {activeTab === "personal" && (
+                            <div className="flex gap-2">
+                                {!isEditing ? (
                                     <Button
-                                        onClick={handleCancel}
+                                        onClick={handleEdit}
                                         variant="secondary"
-                                        disabled={isLoading}
                                         className="bg-white/20 hover:bg-white/30 text-white border-white/30"
                                     >
-                                        <X className="w-4 h-4 mr-2" />
-                                        Cancel
+                                        <Edit className="w-4 h-4 mr-2" />
+                                        Edit Profile
                                     </Button>
-                                    <Button
-                                        onClick={handleSave}
-                                        variant="secondary"
-                                        disabled={isLoading}
-                                        className="bg-white/90 hover:bg-white text-purple-600 border-0"
-                                    >
-                                        {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                                        {isLoading ? "Saving..." : "Save Changes"}
-                                    </Button>
-                                </>
-                            )}
-                        </div>
+                                ) : (
+                                    <>
+                                        <Button
+                                            onClick={handleCancel}
+                                            variant="secondary"
+                                            disabled={isLoading}
+                                            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                                        >
+                                            <X className="w-4 h-4 mr-2" />
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            onClick={handleSave}
+                                            variant="secondary"
+                                            disabled={isLoading}
+                                            className="bg-white/90 hover:bg-white text-purple-600 border-0"
+                                        >
+                                            {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                                            {isLoading ? "Saving..." : "Save Changes"}
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -209,10 +213,10 @@ const ProfileContrainer = ({ profile_data, onClose, onUpdate }: Props) => {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    disabled={tab.id !== "personal"}
+                                    disabled={tab.id !== "personal" && tab.id !== "telegram" && tab.id !== "history"}
                                     className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors relative 
-                    ${activeTab === tab.id ? "text-purple-600" : "text-gray-500 hover:text-gray-700"}
-                    ${tab.id !== "personal" ? "opacity-50 cursor-not-allowed" : ""}
+                    ${activeTab === tab.id ? "text-teal-600" : "text-gray-500 hover:text-gray-700"}
+                    ${tab.id !== "personal" && tab.id !== "telegram" && tab.id !== "history" ? "opacity-50 cursor-not-allowed" : ""}
                   `}
                                 >
                                     <Icon className="w-4 h-4" />
@@ -348,6 +352,12 @@ const ProfileContrainer = ({ profile_data, onClose, onUpdate }: Props) => {
                                 </div>
                             </div>
                         </div>
+                    )}
+                    {activeTab === "telegram" && (
+                        <SettingTap />
+                    )}
+                    {activeTab === "history" && (
+                        <TelegramHistory />
                     )}
 
                     <div className="mt-8 flex justify-end gap-3">

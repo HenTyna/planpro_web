@@ -34,6 +34,7 @@ const ConnectTelegramBot = ({ open, onClose }: Props) => {
         mutationFn: async () => await TelegramService.connectTelegram(Number(chatId)),
         onSuccess: async () => {
             toast.success('Telegram connected.')
+            queryClient.invalidateQueries({ queryKey: ["telegramUserInfo"] })
         },
         onError: () => {
             toast.error('Failed to connect to Telegram.')
@@ -47,7 +48,7 @@ const ConnectTelegramBot = ({ open, onClose }: Props) => {
             return response.data.data as TelegramUserInfo;
         },
         onSuccess: async (data: TelegramUserInfo) => {
-            await queryClient.invalidateQueries({ queryKey: ["telegram"] })
+            await queryClient.invalidateQueries({ queryKey: ["telegramUserInfo"] })
             toast.success('Telegram verified.')
             setUserInfo(data) 
             setVerified(true)
@@ -62,7 +63,7 @@ const ConnectTelegramBot = ({ open, onClose }: Props) => {
         },
         onSettled: () => {
             setVerifying(false)
-            queryClient.invalidateQueries({ queryKey: ["telegram"] })
+            queryClient.invalidateQueries({ queryKey: ["telegramUserInfo"] })
         }
     })
     

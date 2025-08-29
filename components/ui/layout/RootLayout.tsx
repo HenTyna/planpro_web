@@ -24,7 +24,7 @@ function RootLayout({ children }: RootLayoutProps) {
                 }}
             >
                 {/* Navbar */}
-                <NavBar 
+                {/* <NavBar 
                     toggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
                     isDarkMode={false} 
                     currentTheme={{
@@ -33,10 +33,10 @@ function RootLayout({ children }: RootLayoutProps) {
                         name: '',
                         gradient: ''
                     }}
-                />
+                /> */}
 
                 {/* Page content */}
-                <main className="flex-grow p-6 bg-gray-50 mt-16">
+                <main className="flex-grow">
                     {children}
                 </main>
             </div>

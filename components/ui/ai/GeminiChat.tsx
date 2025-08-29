@@ -337,13 +337,13 @@ function GeminiChat() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col h-screen bg-gradient-to-br from-gray-50 to-gray-100 relative">
         {/* Chat Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center shadow-sm z-10">
+        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center shadow-sm z-10" style={{zIndex: 1}}>
           {/* {sidebarState !== "collapsed" && (
             <button onClick={toggleSidebar} className="mr-4 text-gray-500 hover:text-gray-700 transition-colors">
               {sidebarState === "expanded" ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
             </button>
           )} */}
-          <div className="flex items-center">
+          <div className="flex items-center" >
             <MessageSquare className={`text-${currentTheme.name.toLowerCase()}-500 mr-2`} size={20} />
             <h2 className="font-medium">Current Chat</h2>
           </div>
