@@ -10,11 +10,11 @@ interface ReminderStatsProps {
 export const ReminderStats: React.FC<ReminderStatsProps> = ({ reminders }) => {
   const stats = {
     total: reminders.length,
-    active: reminders.filter((r) => r.status === "Active").length,
-    completed: reminders.filter((r) => r.status === "Completed").length,
+    active: reminders?.filter((r) => r.reminderStatus === "Active").length,
+    completed: reminders?.filter((r) => r.reminderStatus === "Completed").length,
     overdue: reminders.filter((r) => {
       const dueDate = new Date(`${r.dueDate}T${r.dueTime}:00`)
-      return dueDate < new Date() && r.status === "Active"
+      return dueDate < new Date() && r.reminderStatus === "Active"
     }).length,
     today: reminders.filter((r) => {
       const dueDate = new Date(r.dueDate)
@@ -23,9 +23,9 @@ export const ReminderStats: React.FC<ReminderStatsProps> = ({ reminders }) => {
     }).length,
     upcoming: reminders.filter((r) => {
       const dueDate = new Date(`${r.dueDate}T${r.dueTime}:00`)
-      return dueDate > new Date() && r.status !== "Completed"
+      return dueDate > new Date() && r.reminderStatus !== "Completed"
     }).length,
-    starred: reminders.filter((r) => r.isStarred).length,
+    starred: reminders.filter((r) => r.starred).length,
   }
 
   return (
