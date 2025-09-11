@@ -10,6 +10,8 @@ import { Badge } from "@/components/shared/ui/badge"
 import { DialogFooter } from "@/components/shared/ui/dialog"
 import { Textarea } from "@/components/shared/ui/texarea"
 import type { Reminder, ReminderCategory, ReminderPriority, ReminderStatus, RecurrenceType } from "./types"
+import { RecurrenceType as RecurrenceTypeEnum, ReminderStatus as ReminderStatusEnum, ReminderPriority as ReminderPriorityEnum } from "./utils"
+import { ReminderCategory as ReminderCategoryEnum } from "./utils"
 
 interface ReminderFormProps {
   reminder: Partial<Reminder>
@@ -29,12 +31,17 @@ export const ReminderForm: React.FC<ReminderFormProps> = ({ reminder, onSave, on
       reminderStatus: "Active" as ReminderStatus,
       recurring: false,
       recurrenceType: "None" as RecurrenceType,
-      starred: false,
-      tags: [],
+      isStarred: false,
+      tags: "",
     },
   )
 
-  const [tagInput, setTagInput] = useState("")
+  // Instead of tagInput, we use a comma-separated string for tags
+  const [tagInput, setTagInput] = useState(
+    (reminder && Array.isArray(reminder.tags) && reminder.tags.length > 0)
+      ? reminder.tags.join(", ")
+      : ""
+  )
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -49,26 +56,38 @@ export const ReminderForm: React.FC<ReminderFormProps> = ({ reminder, onSave, on
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleAddTag = () => {
-    if (tagInput.trim() && !formData.tags?.includes(tagInput.trim())) {
-      setFormData((prev) => ({
-        ...prev,
-        tags: [...(prev.tags || []), tagInput.trim()],
-      }))
-      setTagInput("")
-    }
+  // Update tags in formData whenever tagInput changes
+  const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setTagInput(value)
+    // Split by comma, trim, and filter out empty strings
+    const tags = value
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0)
+    setFormData((prev) => ({
+      ...prev,
+      tags: tags.join(","),
+    }))
   }
 
   const handleRemoveTag = (tag: string) => {
+    const newTags = (formData.tags || "").split(",").filter((t) => t !== tag)
     setFormData((prev) => ({
       ...prev,
-      tags: prev.tags?.filter((t) => t !== tag),
+      tags: newTags.join(","),
     }))
+    setTagInput(newTags.join(", "))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(formData)
+    // Ensure tags are up to date before submit
+    const tags = tagInput
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0)
+    onSave({ ...formData, tags: tags.join(",") })
   }
 
   return (
@@ -117,12 +136,12 @@ export const ReminderForm: React.FC<ReminderFormProps> = ({ reminder, onSave, on
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Personal">Personal</SelectItem>
-              <SelectItem value="Work">Work</SelectItem>
-              <SelectItem value="Health">Health</SelectItem>
-              <SelectItem value="Finance">Finance</SelectItem>
-              <SelectItem value="Social">Social</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
+              {Object.values(ReminderCategoryEnum).map((category: any) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+
             </SelectContent>
           </Select>
         </div>
@@ -134,10 +153,11 @@ export const ReminderForm: React.FC<ReminderFormProps> = ({ reminder, onSave, on
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Low">Low</SelectItem>
-              <SelectItem value="Medium">Medium</SelectItem>
-              <SelectItem value="High">High</SelectItem>
-              <SelectItem value="Urgent">Urgent</SelectItem>
+              {Object.values(ReminderPriorityEnum).map((priority: any) => (
+                <SelectItem key={priority} value={priority}>
+                  {priority}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -150,10 +170,11 @@ export const ReminderForm: React.FC<ReminderFormProps> = ({ reminder, onSave, on
             <SelectValue placeholder="Select status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Active">Active</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
-            <SelectItem value="Snoozed">Snoozed</SelectItem>
-            <SelectItem value="Missed">Missed</SelectItem>
+            {Object.values(ReminderStatusEnum).map((status: any) => (
+              <SelectItem key={status} value={status}>
+                {status}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -178,11 +199,12 @@ export const ReminderForm: React.FC<ReminderFormProps> = ({ reminder, onSave, on
               <SelectValue placeholder="Select recurrence pattern" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Daily">Daily</SelectItem>
-              <SelectItem value="Weekly">Weekly</SelectItem>
-              <SelectItem value="Monthly">Monthly</SelectItem>
-              <SelectItem value="Yearly">Yearly</SelectItem>
-              <SelectItem value="Custom">Custom</SelectItem>
+              {Object.values(RecurrenceTypeEnum).map((type: any) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
+
             </SelectContent>
           </Select>
         </div>
@@ -191,7 +213,7 @@ export const ReminderForm: React.FC<ReminderFormProps> = ({ reminder, onSave, on
       <div className="flex items-center space-x-2">
         <Switch
           id="isStarred"
-          checked={formData.starred}
+          checked={formData.isStarred}
           onCheckedChange={(checked) => handleSwitchChange("starred", checked)}
         />
         <Label htmlFor="isStarred">Star this reminder</Label>
@@ -203,24 +225,15 @@ export const ReminderForm: React.FC<ReminderFormProps> = ({ reminder, onSave, on
           <Input
             id="tagInput"
             value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            placeholder="Add tags"
+            onChange={handleTagInputChange}
+            placeholder="Add tags, separated by commas"
             className="flex-1"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                handleAddTag()
-              }
-            }}
           />
-          <Button type="button" onClick={handleAddTag} variant="outline">
-            Add
-          </Button>
         </div>
 
-        {formData.tags && formData.tags.length > 0 && (
+        {formData.tags && formData.tags.split(",").length > 0 && (
           <div className="flex flex-wrap gap-2 mt-2">
-            {formData.tags.map((tag) => (
+            {formData.tags.split(",").map((tag: any) => (
               <Badge key={tag} variant="secondary" className="flex items-center gap-1">
                 {tag}
                 <button

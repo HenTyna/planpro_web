@@ -15,8 +15,8 @@ export interface Reminder {
   recurring: boolean
   recurrenceType: RecurrenceType
   recurrenceEndDate?: string
-  starred: boolean
+  isStarred: boolean
   createdAt: string
   lastModified: string
-  tags: string[]
+  tags: string
 }

@@ -1,0 +1,33 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sky gradient background -->
+  <defs>
+    <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#B0E0E6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0F6FF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cloudGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F0F8FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Sky background -->
+  <rect width="32" height="32" fill="url(#skyGradient)" rx="6"/>
+  
+  <!-- Cloud shapes -->
+  <ellipse cx="8" cy="10" rx="4" ry="3" fill="url(#cloudGradient)" opacity="0.9"/>
+  <ellipse cx="12" cy="8" rx="3" ry="2.5" fill="url(#cloudGradient)" opacity="0.9"/>
+  <ellipse cx="16" cy="10" rx="3.5" ry="2.8" fill="url(#cloudGradient)" opacity="0.9"/>
+  
+  <ellipse cx="22" cy="12" rx="3" ry="2.2" fill="url(#cloudGradient)" opacity="0.8"/>
+  <ellipse cx="25" cy="10" rx="2.5" ry="2" fill="url(#cloudGradient)" opacity="0.8"/>
+  
+  <!-- Planpro text/icon -->
+  <text x="16" y="24" font-family="Arial, sans-serif" font-size="8" font-weight="bold" text-anchor="middle" fill="#2C5F7C">P</text>
+  
+  <!-- Small planning elements -->
+  <circle cx="6" cy="20" r="1.5" fill="#4682B4" opacity="0.7"/>
+  <circle cx="26" cy="20" r="1.5" fill="#4682B4" opacity="0.7"/>
+  <rect x="14" y="18" width="4" height="2" rx="1" fill="#4682B4" opacity="0.7"/>
+</svg>

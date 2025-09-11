@@ -29,6 +29,7 @@ import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react"
 import ProfileContrainer from "../profile/ProfileContrainer"
 import Image from "next/image"
 import profile from "@/public/asset/profile.jpg";
+import LogoutPopup from "./LogoutPopup"
 
 interface SidebarProps {
     isOpen: boolean
@@ -241,7 +242,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     const currentPath = router.pathname
     const [mounted, setMounted] = useState(false)
     const { isNavigating } = useNavigation()
-
+    const [isLogoutPopupOpen, setIsLogoutPopupOpen] = useState(false)
     const { data, isError, isLoading } = useFetchProfile()
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -291,9 +292,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
     // Handle logout
     const handleLogout = useCallback(() => {
-        if (confirm("Are you sure you want to log out?")) {
-            window.location.href = "/login"
-        }
+        window.location.href = "/"
     }, [])
 
     // Memoize profile data
@@ -320,6 +319,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             className={`bg-white border-r border-gray-200 transition-all duration-300 h-screen ${isOpen ? "w-64" : "w-20"
                 } flex flex-col fixed left-0 top-0 z-10 shadow-sm`}
         >
+            {isLogoutPopupOpen && <LogoutPopup open={isLogoutPopupOpen} onClose={() => setIsLogoutPopupOpen(false)} onLogout={handleLogout} />}
             {/* Decorative elements */}
             <div className="absolute top-0 right-0 w-full h-64 bg-gradient-to-b from-blue-50 to-transparent opacity-50 pointer-events-none"></div>
             <div className="absolute bottom-0 right-0 w-full h-64 bg-gradient-to-t from-teal-50 to-transparent opacity-50 pointer-events-none"></div>
@@ -409,9 +409,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                                     }`}
                             />
                         </button>
-                    
 
-                        
+
+
 
                         {/* Dropdown menu - now positioned above the button */}
                         {isDropdownOpen && (
@@ -430,20 +430,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                                     className="cursor-pointer flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 >
                                     <UserIcon size={16} className="mr-3 text-gray-500 dark:text-gray-400" />
-                                    Settings    
+                                    Settings
                                 </div>
 
-                                
+
 
                                 <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
 
                                 <div
-                                    onClick={handleLogout}
+                                    onClick={
+                                        () => setIsLogoutPopupOpen(true)
+                                    }
                                     className="cursor-pointer flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 >
                                     <LogOut size={16} className="mr-3" />
                                     Sign out
-                                </div>  
+                                </div>
                             </div>
                         )}
 
@@ -454,7 +456,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                             />
                         )}
                     </div>
-                    
+
 
                 </div>
             </div>

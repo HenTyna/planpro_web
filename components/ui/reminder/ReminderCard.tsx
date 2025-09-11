@@ -19,6 +19,9 @@ import { Badge } from "@/components/shared/ui/badge"
 import { Card, CardContent } from "@/components/shared/ui/card"
 import { cn } from "@/utils/utils"
 import type { Reminder, ReminderCategory, ReminderPriority, ReminderStatus } from "./types"
+import ReminderService from "@/service/reminder.service"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "react-hot-toast"
 
 interface ReminderCardProps {
   reminder: Reminder
@@ -35,6 +38,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
   onStatusChange,
   onStarToggle,
 }) => {
+  const queryClient = useQueryClient()
   const dueDate = parseISO(`${reminder.dueDate}T${reminder.dueTime}:00`)
   const isPastDue = isBefore(dueDate, new Date()) && reminder.reminderStatus === "Active"
   const isToday = format(dueDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd")
@@ -115,6 +119,32 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
     )
   }
 
+  // Fix: Convert string id to number for API calls
+  const reminderIdNum = Number(reminder.id)
+
+  // mutate mark as reminder starred
+  const { mutate: markAsReminderStarred } = useMutation({
+    mutationFn: async ({ id, isStarred }: { id: number; isStarred: boolean }) => {
+      await ReminderService.markAsReminderStarred(id, isStarred)
+      return { isStarred }
+    },
+    onSuccess: ({ isStarred }: { isStarred: boolean }) => {
+      toast.success(`${isStarred ? "Starred" : "Unstarred"}`)
+      queryClient.invalidateQueries({ queryKey: ["reminders"] })
+    },
+  })
+  // mutate mark as reminder done
+  const { mutate: markAsReminderDone } = useMutation({
+    mutationFn: async ({ id, isDone }: { id: number; isDone: boolean }) => {
+      await ReminderService.markAsReminderDone(id, isDone)
+      return { isDone }
+    },
+    onSuccess: ({ isDone }: { isDone: boolean }) => {
+      toast.success(`${isDone ? "Completed" : "Active"}`)
+      queryClient.invalidateQueries({ queryKey: ["reminders"] })
+    },
+  })
+
   return (
     <Card
       className={cn(
@@ -127,10 +157,17 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
             <button
-              onClick={() => onStatusChange(reminder.id, reminder.reminderStatus === "Completed" ? "Active" : "Completed")}
+              onClick={() => {
+                // Toggle done status and call mutation with number id
+                const newDone = reminder.reminderStatus !== "Completed"
+                markAsReminderDone({ id: reminderIdNum, isDone: newDone })
+                onStatusChange(reminder.id, newDone ? "Completed" : "Active")
+              }}
               className={cn(
                 "mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
-                reminder.reminderStatus === "Completed" ? "border-blue-500 bg-blue-500 text-white" : "border-gray-300 bg-white",
+                reminder.reminderStatus === "Completed"
+                  ? "border-blue-500 bg-blue-500 text-white"
+                  : "border-gray-300 bg-white",
               )}
             >
               {reminder.reminderStatus === "Completed" && <Check className="h-3 w-3" />}
@@ -141,12 +178,16 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                 <h3
                   className={cn(
                     "font-medium",
-                    reminder.reminderStatus === "Completed" ? "line-through text-gray-500" : "text-gray-900",
+                    reminder.reminderStatus === "Completed"
+                      ? "line-through text-gray-500"
+                      : "text-gray-900",
                   )}
                 >
                   {reminder.title}
                 </h3>
-                {reminder.starred && <Star className="h-4 w-4 ml-2 text-yellow-500 fill-yellow-500" />}
+                {reminder.isStarred && (
+                  <Star className="h-4 w-4 ml-2 text-yellow-500 fill-yellow-500" />
+                )}
               </div>
 
               <p className="text-sm text-gray-500 line-clamp-2">{reminder.description}</p>
@@ -167,7 +208,10 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                   {reminder.reminderStatus}
                 </Badge>
 
-                <Badge variant="outline" className="bg-gray-50 text-gray-700 flex items-center gap-1">
+                <Badge
+                  variant="outline"
+                  className="bg-gray-50 text-gray-700 flex items-center gap-1"
+                >
                   {getCategoryIcon(reminder.category)}
                   {reminder.category}
                 </Badge>
@@ -175,8 +219,12 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
 
               {reminder.tags && reminder.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {reminder.tags.map((tag) => (
-                    <Badge key={tag} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                  {reminder.tags.split(",").map((tag: any) => (
+                    <Badge
+                      key={tag}
+                      variant="outline"
+                      className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                    >
                       #{tag}
                     </Badge>
                   ))}
@@ -190,9 +238,16 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-gray-500 hover:text-yellow-500"
-              onClick={() => onStarToggle(reminder.id)}
+              onClick={() => {
+                // Toggle star status and call mutation with number id
+                markAsReminderStarred({
+                  id: reminderIdNum,
+                  isStarred: !reminder.isStarred,
+                })
+                onStarToggle(reminder.id)
+              }}
             >
-              {reminder.starred ? (
+              {reminder.isStarred ? (
                 <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
               ) : (
                 <StarOff className="h-4 w-4" />

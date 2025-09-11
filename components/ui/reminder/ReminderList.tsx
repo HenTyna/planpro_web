@@ -14,18 +14,19 @@ import {
   ReminderStats,
   ReminderFilters,
   ReminderTabs,
-  generateSampleReminders,
   type Reminder,
   type ReminderCategory,
   type ReminderPriority,
   type ReminderStatus,
   type RecurrenceType,
+  EmptySetup,
 } from "./index"
 import ReminderService from "@/service/reminder.service"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import useFetchReminder from "@/lib/hooks/useFetchReminder"
 import { toast } from "react-hot-toast"
 import LoadingSpinner from "@/components/shared/LoadingSpinner"
+import { useFetchTelegram } from "@/lib/hooks/useFetchTelegram"
 
 // Main component
 export default function ReminderPage() {
@@ -35,7 +36,7 @@ export default function ReminderPage() {
   const [categoryFilter, setCategoryFilter] = useState<ReminderCategory | "All">("All")
   const [statusFilter, setStatusFilter] = useState<ReminderStatus | "All">("All")
   const [priorityFilter, setPriorityFilter] = useState<ReminderPriority | "All">("All")
-  const [currentTab, setCurrentTab] = useState<"all" | "today" | "upcoming" | "completed" | "starred">("all")
+  const [currentTab, setCurrentTab] = useState<"all" | "today" | "upcoming" | "completed" | "starred" | "overdue">("all")
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -44,7 +45,11 @@ export default function ReminderPage() {
   const [currentReminder, setCurrentReminder] = useState<Reminder | null>(null)
   const queryClient = useQueryClient()
   const { data, isLoading, error, setPageNumber, setPageSize } = useFetchReminder()
-  console.log(data)
+  const { telegramUserInfo: telegramData, historyLoading: telegramLoading, historyError: telegramError } = useFetchTelegram()
+  const isConnectedActive = telegramData?.data?.data?.active;
+  const isConnectedStatus = telegramData?.data?.data?.connected
+  console.log("isConnectedActive", isConnectedActive)
+  console.log("isConnectedStatus", isConnectedStatus)
   //mutate create reminder
   const { mutate: createReminder } = useMutation({
     mutationFn: (data: any) => ReminderService.createReminder(data),
@@ -82,16 +87,15 @@ export default function ReminderPage() {
   })
 
 
+
   // Load sample data
+  const reminderData = data?.data?.data;
   useEffect(() => {
-    // const sampleData = generateSampleReminders()
-    // setReminders(sampleData)
-    // setFilteredReminders(sampleData)
-    if (data) {
-      setReminders(data.data)
-      setFilteredReminders(data.data)
+    if (reminderData) {
+      setReminders(reminderData)
+      setFilteredReminders(reminderData)
     }
-  }, [])
+  }, [reminders, reminderData])
 
   // Apply filters
   useEffect(() => {
@@ -104,7 +108,7 @@ export default function ReminderPage() {
         (reminder) =>
           reminder.title.toLowerCase().includes(query) ||
           reminder.description.toLowerCase().includes(query) ||
-          (reminder.tags && reminder.tags.some((tag) => tag.toLowerCase().includes(query))),
+          (reminder.tags && reminder.tags.split(",").some((tag: any) => tag.toLowerCase().includes(query))),
       )
     }
 
@@ -131,15 +135,22 @@ export default function ReminderPage() {
         )
         break
       case "upcoming":
-        result = result.filter(
-          (reminder) => isAfter(parseISO(reminder.dueDate), new Date()) && reminder.reminderStatus !== "Completed",
-        )
+        result = result.filter((reminder) => {
+          const dueDate = new Date(`${reminder.dueDate}T${reminder.dueTime}:00`)
+          return dueDate > new Date() && reminder.reminderStatus !== "Completed"
+        })
         break
       case "completed":
         result = result.filter((reminder) => reminder.reminderStatus === "Completed")
         break
       case "starred":
-        result = result.filter((reminder) => reminder.starred)
+        result = result.filter((reminder) => reminder.isStarred)
+        break
+      case "overdue":
+        result = result.filter((reminder) => {
+          const dueDate = new Date(`${reminder.dueDate}T${reminder.dueTime}:00`)
+          return dueDate < new Date() && reminder.reminderStatus === "Active"
+        })
         break
     }
 
@@ -184,7 +195,7 @@ export default function ReminderPage() {
     setReminders((prev) =>
       prev.map((reminder) =>
         reminder.id === id
-          ? { ...reminder, starred: !reminder.starred, lastModified: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss") }
+          ? { ...reminder, isStarred: !reminder.isStarred, lastModified: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss") }
           : reminder,
       ),
     )
@@ -219,14 +230,13 @@ export default function ReminderPage() {
         reminderStatus: (reminderData.reminderStatus as ReminderStatus) || "Active",
         recurring: reminderData.recurring || false,
         recurrenceType: (reminderData.recurrenceType as RecurrenceType) || "None",
-        starred: reminderData.starred || false,
+        isStarred: reminderData.isStarred || false,
         createdAt: now,
         lastModified: now,
-        tags: reminderData.tags || [],
+        tags: reminderData.tags || "",
       }
 
       // setReminders((prev) => [...prev, newReminder])
-      console.log(newReminder)
       createReminder(newReminder)
       setIsCreateModalOpen(false)
     }
@@ -242,7 +252,7 @@ export default function ReminderPage() {
   }
 
   return (
-    <div className="bg-gray-50 max-h-screen">
+    <div className="bg-gray-50 h-screen">
       {isLoading ? (
         <div className="flex justify-center items-center h-screen">
           <LoadingSpinner size="lg" />
@@ -268,64 +278,85 @@ export default function ReminderPage() {
                     <p className="text-gray-600 mt-1">Never miss important dates and deadlines</p>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <Button onClick={handleCreateReminder}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Reminder
-                    </Button>
-                  </div>
+                  {isConnectedActive ? (
+                    <div className="flex items-center space-x-3">
+                      <Button onClick={handleCreateReminder}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        New Reminder
+                      </Button>
+                    </div>
+                  ) : (
+                    ""
+                  )}
                 </div>
               </div>
             </div>
+            {isConnectedActive ? (
 
-            {/* Stats */}
-            <div className="container mx-auto px-4 py-4">
-              <ReminderStats reminders={reminders} />
-            </div>
+              <>
 
-            {/* Tabs */}
-            <div className="container mx-auto px-4">
-              <ReminderTabs
-                currentTab={currentTab}
-                onTabChange={setCurrentTab}
-                reminders={reminders}
-              />
-            </div>
-          </div>
+                {/* Stats */}
+                <div className="container mx-auto px-4 py-4">
+                  <ReminderStats reminders={reminders} />
+                </div>
 
-          {/* Main content */}
-          <div className="container mx-auto px-4 py-6">
-            {/* Search and filters */}
-            <ReminderFilters
-              searchQuery={searchQuery}
-              categoryFilter={categoryFilter}
-              statusFilter={statusFilter}
-              priorityFilter={priorityFilter}
-              onSearchChange={setSearchQuery}
-              onCategoryChange={setCategoryFilter}
-              onStatusChange={setStatusFilter}
-              onPriorityChange={setPriorityFilter}
-              onResetFilters={resetFilters}
-            />
-
-            {/* Reminders list */}
-            <div className="space-y-4">
-              {filteredReminders.length > 0 ? (
-                filteredReminders.map((reminder) => (
-                  <ReminderCard
-                    key={reminder.id}
-                    reminder={reminder}
-                    onEdit={handleEditReminder}
-                    onDelete={handleDeleteReminder}
-                    onStatusChange={handleStatusChange}
-                    onStarToggle={handleStarToggle}
+                {/* Tabs */}
+                <div className="container mx-auto px-4">
+                  <ReminderTabs
+                    currentTab={currentTab}
+                    onTabChange={setCurrentTab}
+                    reminders={reminders}
                   />
-                ))
-              ) : (
-                <EmptyState onCreateNew={handleCreateReminder} />
-              )}
-            </div>
+                </div>
+              </>
+            ) : (
+              ""
+            )}
           </div>
+          {
+            !isConnectedActive ? (
+              <EmptySetup isConnected={isConnectedStatus} isActive={isConnectedActive} />
+            ) : (
+              <>
+                {/* Main content */}
+                <div className="container mx-auto px-4 py-6">
+                  {/* Search and filters */}
+                  <ReminderFilters
+                    searchQuery={searchQuery}
+                    categoryFilter={categoryFilter}
+                    statusFilter={statusFilter}
+                    priorityFilter={priorityFilter}
+                    onSearchChange={setSearchQuery}
+                    onCategoryChange={setCategoryFilter}
+                    onStatusChange={setStatusFilter}
+                    onPriorityChange={setPriorityFilter}
+                    onResetFilters={resetFilters}
+                  />
+
+                  {/* Reminders list */}
+
+                  <div className="space-y-4">
+                    {filteredReminders.length > 0 ? (
+                      filteredReminders.map((reminder) => (
+                        <ReminderCard
+                          key={reminder.id}
+                          reminder={reminder}
+                          onEdit={handleEditReminder}
+                          onDelete={handleDeleteReminder}
+                          onStatusChange={handleStatusChange}
+                          onStarToggle={handleStarToggle}
+                        />
+                      ))
+                    ) : (
+                      <EmptyState onCreateNew={handleCreateReminder} />
+                    )}
+                  </div>
+
+                </div>
+              </>
+            )
+          }
+
 
           {/* Create/Edit Modal */}
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>

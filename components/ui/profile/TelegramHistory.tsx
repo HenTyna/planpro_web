@@ -45,7 +45,6 @@ const TelegramHistory = () => {
     })
     // Ensure telegramHistory is always an array
     const telegramHistory = data?.data?.data || []
-    console.log("telegramHistory", telegramHistory)
     // Mutation for reconnecting telegram
     const reconnectMutation = useMutation({
         mutationFn: (data: any) => TelegramService.reconnectTelegram(data),
@@ -195,7 +194,7 @@ const TelegramHistory = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                
+
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center">

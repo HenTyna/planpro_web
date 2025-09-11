@@ -1,10 +1,10 @@
 import React from "react"
-import { Bell, Calendar, Clock, Check, Star } from "lucide-react"
+import { Bell, Calendar, Clock, Check, Star, AlertCircle } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/shared/ui/tabs"
 import type { Reminder } from "./types"
 
 interface ReminderTabsProps {
-  currentTab: "all" | "today" | "upcoming" | "completed" | "starred"
+  currentTab: "all" | "today" | "upcoming" | "completed" | "starred" | "overdue"
   onTabChange: (tab: "all" | "today" | "upcoming" | "completed" | "starred") => void
   reminders: Reminder[]
 }
@@ -22,7 +22,11 @@ export const ReminderTabs: React.FC<ReminderTabsProps> = ({ currentTab, onTabCha
       return dueDate > new Date() && r.reminderStatus !== "Completed"
     }).length,
     completed: reminders.filter((r) => r.reminderStatus === "Completed").length,
-    starred: reminders.filter((r) => r.starred).length,
+    starred: reminders.filter((r) => r.isStarred).length,
+    overdue: reminders.filter((r) => {
+      const dueDate = new Date(`${r.dueDate}T${r.dueTime}:00`)
+      return dueDate < new Date() && r.reminderStatus === "Active"
+    }).length,
   }
 
   return (
@@ -32,7 +36,7 @@ export const ReminderTabs: React.FC<ReminderTabsProps> = ({ currentTab, onTabCha
       onValueChange={(value: any) => onTabChange(value as any)}
       className="w-full"
     >
-      <TabsList className="grid grid-cols-5 w-full max-w-3xl">
+      <TabsList className="grid grid-cols-6 w-full max-w-3xl">
         <TabsTrigger value="all" className="flex items-center">
           <Bell className="h-4 w-4 mr-2" />
           <span className="hidden sm:inline">All</span>
@@ -57,6 +61,11 @@ export const ReminderTabs: React.FC<ReminderTabsProps> = ({ currentTab, onTabCha
           <Star className="h-4 w-4 mr-2" />
           <span className="hidden sm:inline">Starred</span>
           <span className="ml-1.5">({stats.starred})</span>
+        </TabsTrigger>
+        <TabsTrigger value="overdue" className="flex items-center">
+          <AlertCircle className="h-4 w-4 mr-2" />
+          <span className="hidden sm:inline">Overdue</span>
+          <span className="ml-1.5">({stats.overdue})</span>
         </TabsTrigger>
       </TabsList>
     </Tabs>

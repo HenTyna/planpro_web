@@ -17,13 +17,31 @@ const updateReminder = async (id: number, data: any) => {
 }
 
 const deleteReminder = async (id: number) => {
-    return http.put(`${serviceId.REMINDER}/delete/${id}`)
+    return http.delete(`${serviceId.REMINDER}/delete/${id}`)
+}
+
+const markAsReminderStarred = async (id: number, isStarred: boolean) => {
+    return http.put(`${serviceId.REMINDER}/mark-as-starred/${id}`, JSON.stringify(isStarred), {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+}
+
+const markAsReminderDone = async (id: number, isDone: boolean) => {
+    return http.put(`${serviceId.REMINDER}/mark-as-done/${id}`, JSON.stringify(isDone), {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
 }
 
 const ReminderService = {
     getReminders,
     createReminder,
     updateReminder,
-    deleteReminder
+    deleteReminder,
+    markAsReminderStarred,
+    markAsReminderDone
 }
 export default ReminderService

@@ -25,7 +25,7 @@ export const ReminderStats: React.FC<ReminderStatsProps> = ({ reminders }) => {
       const dueDate = new Date(`${r.dueDate}T${r.dueTime}:00`)
       return dueDate > new Date() && r.reminderStatus !== "Completed"
     }).length,
-    starred: reminders.filter((r) => r.starred).length,
+    starred: reminders.filter((r) => r.isStarred).length,
   }
 
   return (

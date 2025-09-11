@@ -7,6 +7,7 @@ import { useMutation } from '@tanstack/react-query'
 import TelegramService from '@/service/telegram.service'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
+import { useFetchTelegram } from '@/lib/hooks/useFetchTelegram'
 
 type Props = {
     open: boolean;
@@ -28,7 +29,8 @@ const ConnectTelegramBot = ({ open, onClose }: Props) => {
     const [connecting, setConnecting] = useState(false)
     const [connected, setConnected] = useState(false)
     const [step, setStep] = useState(1) // 1: Enter ID, 2: Verify, 3: Connect
-
+    const { historyData } = useFetchTelegram()
+    const isConnected = historyData?.data?.data?.connected || null;
     const queryClient = useQueryClient()
     const { mutate: connectTelegram } = useMutation({
         mutationFn: async () => await TelegramService.connectTelegram(Number(chatId)),
@@ -41,7 +43,7 @@ const ConnectTelegramBot = ({ open, onClose }: Props) => {
         },
         onSettled: () => {
         }
-    })  
+    })
     const { mutate: verifyTelegram } = useMutation({
         mutationFn: async () => {
             const response = await TelegramService.verifyTelegram(Number(chatId));
@@ -50,7 +52,7 @@ const ConnectTelegramBot = ({ open, onClose }: Props) => {
         onSuccess: async (data: TelegramUserInfo) => {
             await queryClient.invalidateQueries({ queryKey: ["telegramUserInfo"] })
             toast.success('Telegram verified.')
-            setUserInfo(data) 
+            setUserInfo(data)
             setVerified(true)
             setStep(3)
         },
@@ -66,7 +68,7 @@ const ConnectTelegramBot = ({ open, onClose }: Props) => {
             queryClient.invalidateQueries({ queryKey: ["telegramUserInfo"] })
         }
     })
-    
+
 
     // Mock functions for demo purposes
     const handleVerify = () => {
@@ -79,7 +81,7 @@ const ConnectTelegramBot = ({ open, onClose }: Props) => {
         setVerifying(true)
         verifyTelegram()
     }
-    
+
 
     const handleConnect = async () => {
         setConnecting(true)
