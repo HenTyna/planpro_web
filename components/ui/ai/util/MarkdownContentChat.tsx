@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import SyntaxHighlighter from 'react-syntax-highlighter/dist/cjs/prism';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 interface CodeProps {
@@ -80,13 +80,13 @@ const MarkdownContentChat: React.FC<MarkdownContentChatProps> = ({ content }) =>
 
   return (
     <div className="markdown-content prose prose-invert max-w-none">
-      <ReactMarkdown 
-        remarkPlugins={[remarkGfm]} 
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           code({ node, inline, className, children, ...props }: CodeProps) {
             const match = /language-(\w+)/.exec(className || '');
             const codeString = String(children).replace(/\n$/, '');
-            
+
             // Check for callout syntax in code blocks
             if (!inline && codeString.startsWith(':::')) {
               const lines = codeString.split('\n');
@@ -106,19 +106,19 @@ const MarkdownContentChat: React.FC<MarkdownContentChatProps> = ({ content }) =>
                   {match[1]}
                 </div>
                 {/* Copy button */}
-                <button 
+                <button
                   className="absolute top-2 right-16 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-600 hover:bg-gray-500 text-white text-xs px-2 py-1 rounded"
                   onClick={() => navigator.clipboard.writeText(codeString)}
                   title="Copy code"
                 >
                   Copy
                 </button>
-                <SyntaxHighlighter 
-                  style={atomDark} 
-                  language={match[1]} 
+                <SyntaxHighlighter
+                  style={atomDark}
+                  language={match[1]}
                   PreTag="div"
-                  customStyle={{ 
-                    margin: '0', 
+                  customStyle={{
+                    margin: '0',
                     borderRadius: '0.5rem',
                     background: '#1a1a1a',
                     border: '1px solid #374151',
@@ -126,15 +126,15 @@ const MarkdownContentChat: React.FC<MarkdownContentChatProps> = ({ content }) =>
                     lineHeight: '1.5',
                     padding: '1rem',
                     paddingTop: '2.5rem'
-                  }} 
+                  }}
                   {...props}
                 >
                   {codeString}
                 </SyntaxHighlighter>
               </div>
             ) : (
-              <code 
-                className="bg-gray-800 text-emerald-300 px-2 py-1 rounded text-sm font-mono border border-gray-700" 
+              <code
+                className="bg-gray-800 text-emerald-300 px-2 py-1 rounded text-sm font-mono border border-gray-700"
                 {...props}
               >
                 {children}
@@ -145,14 +145,14 @@ const MarkdownContentChat: React.FC<MarkdownContentChatProps> = ({ content }) =>
           blockquote({ children, ...props }: BlockquoteProps) {
             const content = React.Children.toArray(children);
             const firstChild = content[0] as ElementWithChildren;
-            
+
             // Check if it's a special callout blockquote
             if (React.isValidElement(firstChild) && firstChild.props && 'children' in firstChild.props) {
               const childContent = firstChild.props.children;
               const text = String(childContent || '').toLowerCase();
-              if (text.startsWith('[!tip]') || text.startsWith('[!warning]') || 
-                  text.startsWith('[!danger]') || text.startsWith('[!info]') || 
-                  text.startsWith('[!note]')) {
+              if (text.startsWith('[!tip]') || text.startsWith('[!warning]') ||
+                text.startsWith('[!danger]') || text.startsWith('[!info]') ||
+                text.startsWith('[!note]')) {
                 const typeMatch = text.match(/\[!(\w+)\]/);
                 if (typeMatch) {
                   const type = typeMatch[1].toLowerCase();
@@ -232,10 +232,10 @@ const MarkdownContentChat: React.FC<MarkdownContentChatProps> = ({ content }) =>
 
           a({ href, children }) {
             return (
-              <a 
-                href={href} 
-                className="text-blue-400 hover:text-blue-300 underline decoration-blue-400/50 hover:decoration-blue-300 transition-colors" 
-                target="_blank" 
+              <a
+                href={href}
+                className="text-blue-400 hover:text-blue-300 underline decoration-blue-400/50 hover:decoration-blue-300 transition-colors"
+                target="_blank"
                 rel="noopener noreferrer"
               >
                 {children}

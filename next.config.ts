@@ -8,13 +8,8 @@ const nextConfig: NextConfig = {
   },
   // Enable standalone output for Docker deployment
   output: 'standalone',
-  // Optimize for production
-  swcMinify: true,
-  // Enable experimental features for better performance
-  experimental: {
-    // Enable server components
-    serverComponentsExternalPackages: [],
-  },
+  // External packages for server components
+  serverExternalPackages: [],
 };
 
 export default nextConfig;

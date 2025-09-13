@@ -108,7 +108,7 @@ export const ReminderDetailView: React.FC<ReminderDetailViewProps> = ({
             {reminder.title}
           </h2>
 
-          {reminder.starred && <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />}
+          {reminder.isStarred && <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />}
         </div>
 
         <div className="flex items-center space-x-2">
@@ -180,9 +180,9 @@ export const ReminderDetailView: React.FC<ReminderDetailViewProps> = ({
         <div>
           <h3 className="text-sm font-medium text-gray-500 mb-2">Tags</h3>
           <div className="flex flex-wrap gap-2">
-            {reminder.tags.map((tag) => (
-              <Badge key={tag} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                #{tag}
+            {reminder.tags && reminder.tags.split(',').map((tag) => (
+              <Badge key={tag.trim()} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                #{tag.trim()}
               </Badge>
             ))}
           </div>

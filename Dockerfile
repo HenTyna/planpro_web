@@ -6,8 +6,10 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Install ALL dependencies (including dev dependencies for build)
-RUN npm ci && npm cache clean --force
+# Update npm to latest version and install dependencies
+RUN npm install -g npm@latest && \
+    npm ci && \
+    npm cache clean --force
 
 # Build stage
 FROM node:18-alpine AS builder

@@ -1,7 +1,6 @@
 // RootLayout.tsx
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
-import NavBar from './Navbar';
 
 interface RootLayoutProps {
     children: React.ReactNode;
