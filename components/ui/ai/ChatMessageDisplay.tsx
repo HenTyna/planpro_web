@@ -2,6 +2,7 @@
 import type { ChatMessage } from "@/lib/types/chat"
 import { BotIcon, Sparkles } from "lucide-react"
 import type React from "react"
+import MarkdownContentChat from "./util/MarkdownContentChat"
 
 interface ChatMessageDisplayProps {
   message: ChatMessage
@@ -38,11 +39,11 @@ const ChatMessageDisplay: React.FC<ChatMessageDisplayProps> = ({ message, curren
           isUser
             ? `bg-gradient-to-r ${currentTheme.gradient} text-white rounded-tr-none`
             : isSystem
-              ? "bg-gradient-to-r from-gray-200 to-gray-100 text-gray-700 italic rounded-tl-none"
-              : "bg-white text-gray-800 border border-gray-100 rounded-tl-none"
+              ? "bg-gradient-to-r from-gray-200 to-gray-300 text-gray-900 italic rounded-tl-none"
+              : "bg-gray-500 text-gray-900 border border-gray-200 rounded-tl-none"
         } p-4`}
       >
-        {message.text}
+        <MarkdownContentChat content={message.text} />
       </div>
       {isUser && (
         <div className="ml-3 flex-shrink-0">
