@@ -1,18 +1,17 @@
 # Multi-stage build for Next.js
-FROM node:18-alpine AS deps
+FROM node:20-alpine AS deps
 
 WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Update npm to latest version and install dependencies
-RUN npm install -g npm@latest && \
-    npm ci && \
+# Install dependencies (npm is already latest in Node 20)
+RUN npm ci && \
     npm cache clean --force
 
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -26,7 +25,7 @@ COPY . .
 RUN npm run build
 
 # Runtime stage
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 
