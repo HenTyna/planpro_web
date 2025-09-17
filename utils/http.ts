@@ -1,13 +1,13 @@
 import axios from 'axios';
-import {getSession} from "next-auth/react";
+import { getSession } from "next-auth/react";
 
 export const http = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://planpro-dev.up.railway.app/',
 });
 
 http.interceptors.request.use(async (request) => {
     const userSession = await getSession();
-    if(!userSession) return request;
+    if (!userSession) return request;
 
     // @ts-ignore
     request.headers.Authorization = `Bearer ${userSession?.token}`;
@@ -21,9 +21,9 @@ http.interceptors.response.use(
     (error) => {
         const response = error?.response
         const data = response?.data
-        if(!response){
+        if (!response) {
             return Promise.reject(error);
-        }else if (!response.ok) {
+        } else if (!response.ok) {
             const error = (data && data?.message) || response.statusText || data?.status?.message;
             return Promise.reject({
                 message: error,
