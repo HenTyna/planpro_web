@@ -7,11 +7,11 @@ import { AuthRequest } from "@/lib/types/auth";
 import { PasswordUtils } from "@/utils/PasswordUtils";
 
 export const jwt = async ({ token, user }: { token: JWT; user?: User }) => {
-
     if(user){
         token.token = user.data.access_token
+        token.accessTokenExpires = user.data.expires_in
     }
-    return { ...token, ...user };
+    return token;
 };
 
 export const session = ({ session, token }: { session: Session; token: JWT }): Promise<Session> => {
@@ -40,6 +40,7 @@ export const session = ({ session, token }: { session: Session; token: JWT }): P
 
 export const authOption: NextAuthOptions = ({
     secret: process.env.NEXTAUTH_SECRET,
+    debug: process.env.NODE_ENV === "development",
     providers: [
         CredentialsProvider({
             name: "Credentials",

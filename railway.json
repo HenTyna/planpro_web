@@ -21,6 +21,7 @@
         "NEXT_PUBLIC_WS_FALLBACK_URL": "wss://planpro-dev.up.railway.app/ws",
         "NEXT_PUBLIC_SOCKJS_URL": "https://planpro-dev.up.railway.app/ws",
         "NEXTAUTH_SECRET": "yp07B20A68ncgpoiwDqnhWjLHLQ68iUy64Nk0wR0RBw0=",
+        "NEXTAUTH_URL": "https://planpro.up.railway.app",
         "GOOGLE_API_KEY": "AIzaSyBSIVn_HrlfJ-HnD1oQ9qhVhcnXT92OPQI",
         "NEXT_PUBLIC_PWD_ENCRYPTION_KEY": "mytestkeyasdddds"
       }
