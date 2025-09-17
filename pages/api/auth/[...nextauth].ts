@@ -1,13 +1,13 @@
 import CredentialsProvider from "next-auth/providers/credentials"
-import NextAuth, {NextAuthOptions, Session, User} from "next-auth";
-import {JWT} from "next-auth/jwt";
+import NextAuth, { NextAuthOptions, Session, User } from "next-auth";
+import { JWT } from "next-auth/jwt";
 import * as process from "node:process";
 import { authService } from "@/service/auth.service";
 import { AuthRequest } from "@/lib/types/auth";
 import { PasswordUtils } from "@/utils/PasswordUtils";
 
 export const jwt = async ({ token, user }: { token: JWT; user?: User }) => {
-    if(user){
+    if (user) {
         token.token = user.data.access_token
         token.accessTokenExpires = user.data.expires_in
     }
@@ -56,7 +56,7 @@ export const authOption: NextAuthOptions = ({
                 }
                 const response = await authService.login(authRequest)
                     .catch(err => err);
-                    
+
 
                 if (response.status === 200) {
                     return response.data;
@@ -69,7 +69,7 @@ export const authOption: NextAuthOptions = ({
         strategy: "jwt",
         maxAge: 2 * 60 * 60, // 2 hours
     },
-    callbacks:{
+    callbacks: {
         jwt,
         session
     },
