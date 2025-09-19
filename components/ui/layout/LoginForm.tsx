@@ -166,12 +166,12 @@ export default function LoginPage() {
                                         <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                                             Password
                                         </label>
-                                        <Link
+                                        {/* <Link
                                             href="/forgot-password"
                                             className="text-sm text-blue-500 hover:text-blue-600 transition-colors hover:underline"
                                         >
                                             Forgot password?
-                                        </Link>
+                                        </Link> */}
                                     </div>
                                     <div className="relative group">
                                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-teal-400 rounded-md opacity-30 blur-sm group-hover:opacity-40 transition-opacity"></div>
@@ -247,11 +247,11 @@ export default function LoginPage() {
                                         <div className="w-full border-t border-gray-200"></div>
                                     </div>
                                     <div className="relative flex justify-center text-sm">
-                                        <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                                        <span className="px-2 bg-white text-gray-500">Or </span>
                                     </div>
                                 </div>
 
-                                <div className="mt-6 grid grid-cols-2 gap-3">
+                                {/* <div className="mt-6 grid grid-cols-2 gap-3">
                                     <button type="button" className="w-full relative group overflow-hidden">
                                         <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900 group-hover:from-gray-900 group-hover:to-black transition-all duration-300"></div>
                                         <span className="relative z-10 flex items-center justify-center text-white">
@@ -266,7 +266,7 @@ export default function LoginPage() {
                                             Twitter
                                         </span>
                                     </Button>
-                                </div>
+                                </div> */}
                             </div>
 
                             <div className="mt-8 text-center">

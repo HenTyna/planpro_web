@@ -20,6 +20,7 @@ import toast from "react-hot-toast";
 interface RegisterFormValues {
     user_name: string;
     email: string;
+    phone_number: string;
     password: string;
 }
 
@@ -41,6 +42,7 @@ export default function RegisterPage() {
         defaultValues: {
             user_name: typeof state?.value === 'object' && state.value !== null && 'data' in state.value && (state.value as any).data?.user_name ? (state.value as any).data.user_name : "",
             email: typeof state?.value === 'object' && state.value !== null && 'data' in state.value && (state.value as any).data?.email ? (state.value as any).data.email : "",
+            phone_number: typeof state?.value === 'object' && state.value !== null && 'data' in state.value && (state.value as any).data?.phone_number ? (state.value as any).data.phone_number : "",
             password: typeof state?.value === 'object' && state.value !== null && 'data' in state.value && (state.value as any).data?.email?.password ? PasswordUtils.encrypt((state.value as any).data.email.password) : "",
         },
     });
@@ -58,6 +60,7 @@ export default function RegisterPage() {
             const requestBody = {
                 user_name: data.user_name,
                 email: data.email,
+                phone_number: data.phone_number,
                 password: PasswordUtils.encrypt(data.password),
             };
 
@@ -66,14 +69,14 @@ export default function RegisterPage() {
                     console.error("Registration error:", err);
                     setError("Registration failed. Please try again.");
                 },
-                onSuccess: () =>{
+                onSuccess: () => {
                     toast.success("Account created successfully!");
                 }
             });
         } catch (err) {
             console.error("Unexpected registration error:", err);
             setError("An unexpected error occurred.");
-        }finally {
+        } finally {
             toast.dismiss(toastId);
         }
     };
@@ -118,6 +121,7 @@ export default function RegisterPage() {
                                     Create your account
                                 </h1>
                                 <p className="text-gray-600">Start planning smarter with PlanPro</p>
+                                <p className="text-gray-600">Already have an account? <Link href="/login" className="text-orange-500 hover:text-orange-600">Login</Link></p>
                             </div>
 
                             {error && (
@@ -162,6 +166,21 @@ export default function RegisterPage() {
                                         />
                                     </div>
                                 </div>
+
+                                {/* Phone Number */}
+
+                                <div className="space-y-2">
+                                    <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700">
+                                        Phone Number
+                                    </label>
+                                </div>
+
+                                <Input
+                                    type="tel"
+                                    placeholder="1234567890"
+                                    className="pl-10 border-transparent bg-white relative z-10"
+                                    {...register("phone_number", { required: "Phone number is required" })}
+                                />
 
                                 {/* Password */}
                                 <div className="space-y-2">

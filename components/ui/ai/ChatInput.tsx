@@ -29,13 +29,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, current
 
   return (
     <form onSubmit={handleSubmit} className="flex items-center gap-3 w-full rounded-l-xl">
-      <button
+      {/* <button
         type="button"
         className="text-gray-500 hover:text-gray-700 transition-colors flex-shrink-0"
         aria-label="Attach file"
       >
         <Paperclip size={20} />
-      </button>
+      </button> */}
 
       <div className="relative flex-grow">
         <input
@@ -46,22 +46,22 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, current
           className={`w-full px-5 py-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 ${currentTheme.ring} bg-gray-50 pr-10 transition-all duration-300`}
           disabled={isLoading}
         />
-        <button
+        {/* <button
           type="button"
           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
           aria-label="Add emoji"
         >
           <Smile size={20} />
-        </button>
+        </button> */}
       </div>
 
-      <button
+      {/* <button
         type="button"
         className="text-gray-500 hover:text-gray-700 transition-colors flex-shrink-0"
         aria-label="Voice input"
       >
         <Mic size={20} />
-      </button>
+      </button> */}
 
       <button
         type="submit"

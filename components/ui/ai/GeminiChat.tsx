@@ -13,6 +13,7 @@ import {
   Settings,
   User,
 } from "lucide-react"
+import { useFetchProfile } from "@/lib/hooks/useFetchProfile"
 
 // Add a color themes array
 const colorThemes = [
@@ -26,6 +27,9 @@ const colorThemes = [
 ]
 
 function GeminiChat() {
+
+  const { data: userInfo } = useFetchProfile()
+
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -188,27 +192,25 @@ function GeminiChat() {
     <div className="flex w-full overflow-auto h-[100%]">
       {/* Sidebar */}
       <div
-        className={` transition-all duration-300 ease-in-out ${
-          sidebarState === "expanded" ? "w-72" : sidebarState === "mini" ? "w-20" : "w-20"
-        } overflow-hidden shadow-xl relative flex-shrink-0`}
+        className={` transition-all duration-300 ease-in-out ${sidebarState === "expanded" ? "w-72" : sidebarState === "mini" ? "w-20" : "w-20"
+          } overflow-hidden shadow-xl relative flex-shrink-0`}
       >
         <div
-          className={`h-full flex flex-col bg-gradient-to-br from-teal-200 to-blue-200 text-white rounded-l-xl ${
-            sidebarState === "mini" ? "items-center" : ""
-          }`}
+          className={`h-full flex flex-col bg-gradient-to-br from-teal-200 to-blue-200 text-white rounded-l-xl ${sidebarState === "mini" ? "items-center" : ""
+            }`}
         >
           {/* Sidebar Header */}
           <div className={`p-6 ${sidebarState === "mini" ? "p-4" : ""}`}>
             <div className={`flex items-center ${sidebarState === "mini" ? "justify-center" : "justify-between"} mb-8`}>
               <div className="flex items-center">
-                
-                <div 
-                  className="bg-gradient-to-r from-purple-500 to-indigo-600 p-2 rounded-lg shadow-lg cursor-pointer" 
+
+                <div
+                  className="bg-gradient-to-r from-purple-500 to-indigo-600 p-2 rounded-lg shadow-lg cursor-pointer"
                   onClick={toggleSidebar}
                 >
                   <Sparkles className="text-white" size={sidebarState === "mini" ? 24 : 20} />
                 </div>
-                {sidebarState === "expanded" && <h1 className="text-xl text-blue-500 font-bold ml-3">Gemini Chat</h1>}
+                {sidebarState === "expanded" && <h1 className="text-xl text-blue-500 font-bold ml-3">PlanPro AI</h1>}
               </div>
               {/* {sidebarState === "expanded" && (
                 <button onClick={toggleSidebar} className="text-gray-400 hover:text-white transition-colors">
@@ -219,37 +221,34 @@ function GeminiChat() {
 
             <button
               onClick={handleAddNewMessage}
-              className={`flex items-center justify-center gap-2 p-3 ${currentTheme.color} text-white rounded-lg hover:opacity-90 transition-all duration-200 shadow-lg transform hover:scale-105 ${
-                sidebarState === "mini" ? "w-12 h-12 p-0" : "w-full"
-              }`}
+              className={`flex items-center justify-center gap-2 p-3 ${currentTheme.color} text-white rounded-lg hover:opacity-90 transition-all duration-200 shadow-lg transform hover:scale-105 ${sidebarState === "mini" ? "w-12 h-12 p-0" : "w-full"
+                }`}
             >
               <Plus size={18} />
               {sidebarState === "expanded" && "New Chat"}
             </button>
           </div>
 
-      
-          
+
+
 
           {/* Mini Navigation */}
           {sidebarState === "mini" && (
             <div className="flex flex-col items-center space-y-6 mt-6">
               <button
-                className={`p-3 rounded-lg transition-colors ${
-                  activeCategory === "recent"
-                    ? "bg-gray-700 text-gray-200"
-                    : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-                }`}
+                className={`p-3 rounded-lg transition-colors ${activeCategory === "recent"
+                  ? "bg-gray-700 text-gray-200"
+                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                  }`}
                 onClick={() => setActiveCategory("recent")}
               >
                 <Clock size={20} />
               </button>
               <button
-                className={`p-3 rounded-lg transition-colors ${
-                  activeCategory === "starred"
-                    ? "bg-gray-700 text-white"
-                    : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-                }`}
+                className={`p-3 rounded-lg transition-colors ${activeCategory === "starred"
+                  ? "bg-gray-700 text-white"
+                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                  }`}
                 onClick={() => setActiveCategory("starred")}
               >
                 <Star size={20} />
@@ -274,10 +273,9 @@ function GeminiChat() {
                     onClick={() => handleLoadHistory(chat.id)}
                     className={`
                       transition-all duration-200
-                      ${
-                        sidebarState === "mini"
-                          ? "w-12 h-12 flex items-center justify-center rounded-lg"
-                          : "flex-grow text-left p-3 rounded-lg truncate  flex items-center"
+                      ${sidebarState === "mini"
+                        ? "w-12 h-12 flex items-center justify-center rounded-lg"
+                        : "flex-grow text-left p-3 rounded-lg truncate  flex items-center"
                       }
                     `}
                   >
@@ -310,12 +308,12 @@ function GeminiChat() {
                   <User size={20} className="text-white" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium">User Name</p>
-                  <p className="text-xs text-gray-400">user@example.com</p>
+                  <p className="text-sm font-medium text-gray-700">{userInfo?.username}</p>
+                  <p className="text-xs text-gray-400 text-gray-300">{userInfo?.email}</p>
                 </div>
-                <button className="ml-auto p-2 text-gray-400 hover:text-white rounded-lg">
+                {/* <button className="ml-auto p-2 text-gray-400 hover:text-white rounded-lg">
                   <Settings size={18} />
-                </button>
+                </button> */}
               </div>
             </div>
           )}
@@ -337,7 +335,7 @@ function GeminiChat() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col h-screen bg-gradient-to-br from-gray-50 to-gray-100 relative">
         {/* Chat Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center shadow-sm z-10" style={{zIndex: 1}}>
+        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center shadow-sm z-10" style={{ zIndex: 1 }}>
           {/* {sidebarState !== "collapsed" && (
             <button onClick={toggleSidebar} className="mr-4 text-gray-500 hover:text-gray-700 transition-colors">
               {sidebarState === "expanded" ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}

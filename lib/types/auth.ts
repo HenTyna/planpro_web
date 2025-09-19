@@ -48,14 +48,15 @@ export interface Identification {
     time: string;
 }
 
-export interface AuthRequest{
+export interface AuthRequest {
     user_name: string;
     password: string;
+    phone_number: string;
     // app_type: string;
     // identification: Identification;
 }
 
-export interface SignupRequest{
+export interface SignupRequest {
     // app_type: string;
     user_name: string;
     email: string;
@@ -67,12 +68,12 @@ export interface SignupRequest{
     // contact_phonenumber: string;
 }
 
-export interface SendOtpRequest{
+export interface SendOtpRequest {
     to: string;
     region_cd: string;
     app_type?: string;
 }
-export interface ResetPasswordRequest{
+export interface ResetPasswordRequest {
     session_id: string;
     password: string;
     phonenumber: string;
@@ -80,12 +81,12 @@ export interface ResetPasswordRequest{
     app_type?: string;
 }
 
-export interface SendOptResponse{
+export interface SendOptResponse {
     security_key: string;
     lifetime: number;
 }
 
-export interface VerifyOtpRequest{
+export interface VerifyOtpRequest {
     security_key: string;
     security_code: string;
     phonenumber: string;
