@@ -6,6 +6,7 @@ const WeTalk = () => {
         <div>
             <Head>
                 <title>PlanPro | We-Talk</title>
+                <link rel="icon" href="/asset/planpro-favicon.svg" />
             </Head>
             <main>
                 <WeTalkContainer />

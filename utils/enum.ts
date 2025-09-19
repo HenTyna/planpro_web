@@ -11,7 +11,8 @@ export enum Path {
     TELEGRAM = "/telegram",
     WE_TALK = "/we-talk",
     CHAT_PAGE = "/chat",
-    
+    MY_TELEGRAM = "https://t.me/ahh_tiii",
+
 }
 
 export enum ConfirmationType {

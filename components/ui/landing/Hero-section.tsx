@@ -3,6 +3,8 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import { Button } from "@/components/shared/ui/Button"
 import PlanProPic from "@/public/asset/landingPic1.jpg"
+import { Path } from "@/utils/enum"
+import Link from "next/link"
 export default function HeroSection() {
   const [mounted, setMounted] = useState(false)
 
@@ -40,18 +42,23 @@ export default function HeroSection() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 mt-2">
             <Button size="lg" className="bg-blue-500 hover:bg-blue-600">
+              <Link href={Path.REGISTER}>
+                Get Started for Free
+              </Link>
+            </Button>
+            {/* <Button size="lg" variant="outline">
               Get Started for Free
             </Button>
             <Button size="lg" variant="outline">
               Watch Demo
-            </Button>
+            </Button> */}
           </div>
           <div className="flex items-center gap-4 mt-6">
             <div className="flex -space-x-2">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
                   <Image
-                    src={`/placeholder.svg?height=32&width=32`}
+                    src={`/asset/profile.jpg?height=32&width=32`}
                     alt={`User ${i}`}
                     width={32}
                     height={32}

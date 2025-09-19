@@ -8,7 +8,7 @@ const chatai = () => {
       <Head>
         <title>PlanPro | Chat AI</title>
         <meta name="description" content="Chat AI page" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/asset/planpro-favicon.svg" />
       </Head>
       <main>
         <GeminiChat />

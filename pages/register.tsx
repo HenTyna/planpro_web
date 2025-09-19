@@ -9,14 +9,14 @@ const register = () => {
                 <Head>
                     <title>PlanPro | Register</title>
                     <meta name="description" content="Login to your account" />
-                    <link rel="icon" href="/favicon.ico" />
+                    <link rel="icon" href="/asset/planpro-favicon.svg" />
                 </Head>
                 <main>
                     <RegisterPage />
                 </main>
             </div>
         </>
-      )
+    )
 }
 
 export default register

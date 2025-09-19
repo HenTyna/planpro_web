@@ -6,6 +6,7 @@ const ChatPage = () => {
         <div>
             <Head>
                 <title>PlanPro | Chat</title>
+                <link rel="icon" href="/asset/planpro-favicon.svg" />
             </Head>
             <main>
                 <ChatContainer />

@@ -9,6 +9,7 @@ const Canlendar = () => {
                 <title>PlanPro | Canlendar</title>
                 <meta name="description" content="Chat AI page" />
                 <link rel="icon" href="/favicon.ico" />
+                <link rel="icon" href="/asset/planpro-favicon.svg" />
             </Head>
             <main>
 

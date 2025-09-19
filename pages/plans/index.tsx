@@ -8,7 +8,7 @@ const index = () => {
             <Head>
                 <title>PlanPro | Plans</title>
                 <meta name="description" content="Plans" />
-                <link rel="icon" href="/favicon.ico" />
+                <link rel="icon" href="/asset/planpro-favicon.svg" />
             </Head>
             <main>
                 <PlanList />

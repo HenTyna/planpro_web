@@ -7,6 +7,7 @@ const trips = () => {
     <div>
       <Head>
         <title>PlanPro | Trips</title>
+        <link rel="icon" href="/asset/planpro-favicon.svg" />
       </Head>
       <main>
         <TripsContrainer />

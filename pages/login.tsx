@@ -5,16 +5,16 @@ import React from 'react'
 const Login = () => {
   return (
     <>
-        <div>
-            <Head>
-                <title>PlanPro | Login</title>
-                <meta name="description" content="Login to your account" />
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
-            <main>
-                <LoginForm />
-            </main>
-        </div>
+      <div>
+        <Head>
+          <title>PlanPro | Login</title>
+          <meta name="description" content="Login to your account" />
+          <link rel="icon" href="/asset/planpro-favicon.svg" />
+        </Head>
+        <main>
+          <LoginForm />
+        </main>
+      </div>
     </>
   )
 }
