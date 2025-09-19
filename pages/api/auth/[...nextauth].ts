@@ -15,26 +15,26 @@ export const jwt = async ({ token, user }: { token: JWT; user?: User }) => {
 };
 
 export const session = ({ session, token }: { session: Session; token: JWT }): Promise<Session> => {
+    try {
+        if (Date.now() / 1000 > token?.accessTokenExpires) {
+            throw new Error("Refresh token has expired. Please log in again to get a new refresh token.");
+        }
 
-    if (Date.now() / 1000 > token?.accessTokenExpires) {
-        return Promise.reject({
-            error: new Error("Refresh token has expired. Please log in again to get a new refresh token."),
-        });
+        const tokenPart = token.token?.split(".")?.at(1);
+        if (!tokenPart) {
+            throw new Error("Invalid token format.");
+        }
+
+        const accessTokenData = JSON.parse(atob(tokenPart));
+        session.user = accessTokenData;
+        token.accessTokenExpires = accessTokenData.exp;
+        session.token = token?.token;
+
+        return Promise.resolve(session);
+    } catch (error) {
+        console.error('Session callback error:', error);
+        return Promise.reject(error);
     }
-    const tokenPart = token.token?.split(".")?.at(1);
-    if (!tokenPart) {
-        return Promise.reject({
-            error: new Error("Invalid token format."),
-        });
-    }
-    const accessTokenData = JSON.parse(atob(tokenPart));
-
-    session.user = accessTokenData;
-    token.accessTokenExpires = accessTokenData.exp;
-
-    session.token = token?.token;
-
-    return Promise.resolve(session);
 };
 
 
@@ -49,19 +49,27 @@ export const authOption: NextAuthOptions = ({
                 password: {}
             },
             async authorize(credentials) {
+                try {
+                    if (!credentials?.user_name || !credentials?.password) {
+                        throw new Error("Username and password are required");
+                    }
 
-                const authRequest: AuthRequest = {
-                    user_name: credentials?.user_name ?? "",
-                    password: PasswordUtils.encrypt(credentials?.password ?? ""),
+                    const authRequest: AuthRequest = {
+                        user_name: credentials.user_name,
+                        password: PasswordUtils.encrypt(credentials.password),
+                    }
+
+                    const response = await authService.login(authRequest);
+
+                    if (response.status === 200) {
+                        return response.data;
+                    }
+
+                    throw new Error(response?.data?.message || "Invalid username or password");
+                } catch (error: any) {
+                    console.error('Authorization error:', error);
+                    throw new Error(error?.message || "Login failed. Please try again.");
                 }
-                const response = await authService.login(authRequest)
-                    .catch(err => err);
-
-
-                if (response.status === 200) {
-                    return response.data;
-                }
-                throw new Error(response?.message || "Invalid username or password")
             }
         })
     ],
