@@ -286,9 +286,11 @@ const TaskCard = ({ task, onTaskClick }: { task: Task; onTaskClick: (task: Task)
 
             {task.image && !imageError && (
                 <div className="mb-3 rounded-md overflow-hidden relative group-hover:shadow-md transition-shadow">
-                    <img
+                    <Image
                         src={task.image || "/placeholder.svg"}
                         alt={`${task.title} preview`}
+                        width={400}
+                        height={96}
                         className="w-full h-24 object-cover transition-transform duration-500 group-hover:scale-105"
                         onError={() => setImageError(true)}
                         loading="lazy"

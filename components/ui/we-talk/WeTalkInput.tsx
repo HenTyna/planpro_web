@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Send, Smile, Paperclip, Zap } from 'lucide-react'
 
 interface WeTalkInputProps {
@@ -19,20 +19,20 @@ const WeTalkInput: React.FC<WeTalkInputProps> = ({
   const typingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
 
   // Handle typing indicator
-  const handleTyping = (typing: boolean) => {
+  const handleTyping = useCallback((typing: boolean) => {
     if (isTyping !== typing) {
       setIsTyping(typing)
       onTypingIndicator?.(typing)
     }
-  }
+  }, [isTyping, onTypingIndicator])
 
   // Clear typing timeout
-  const clearTypingTimeout = () => {
+  const clearTypingTimeout = useCallback(() => {
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
       typingTimeoutRef.current = null
     }
-  }
+  }, [])
 
   // Handle input change with typing indicator
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -65,7 +65,7 @@ const WeTalkInput: React.FC<WeTalkInputProps> = ({
         handleTyping(false)
       }
     }
-  }, [isTyping])
+  }, [isTyping, clearTypingTimeout, handleTyping])
 
   const handleSendMessage = () => {
     if (!message.trim() || disabled || isSending) {

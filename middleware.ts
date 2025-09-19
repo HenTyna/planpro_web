@@ -13,13 +13,14 @@ export default withAuth({
 export const config = {
     matcher: [
         "/trips/:path*",
-        "/reminders",
-        "/plans",
-        "/todos",
-        "/chat-ai",
-        "/notes",
-        "/calendar",
-        "/telegram",
+        "/reminder/:path*",
+        "/plans/:path*",
+        "/todos/:path*",
+        "/chat-ai/:path*",
+        "/notes/:path*",
+        "/calendar/:path*",
+        "/telegram/:path*",
+        "/we-talk/:path*",
         "/404",
         "/403"
     ]

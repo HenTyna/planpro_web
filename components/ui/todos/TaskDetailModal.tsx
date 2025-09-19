@@ -1,6 +1,7 @@
 import { Button } from "@/components/shared/ui/Button"
 import { formatDateCard } from "@/utils/dateformat"
 import { CalendarDays, X } from "lucide-react"
+import Image from "next/image"
 
 // Task Detail Modal Component
 const TaskDetailModal = ({ task, onClose }: any) => {
@@ -26,7 +27,7 @@ const TaskDetailModal = ({ task, onClose }: any) => {
                 <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
                     {task.image && (
                         <div className="mb-6 rounded-lg overflow-hidden shadow-sm">
-                            <img src={task.image || "/placeholder.svg"} alt={task.title} className="w-full h-48 object-cover" />
+                            <Image src={task.image || "/placeholder.svg"} alt={task.title} width={400} height={192} className="w-full h-48 object-cover" />
                         </div>
                     )}
 

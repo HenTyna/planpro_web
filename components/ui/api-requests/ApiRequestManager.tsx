@@ -37,7 +37,7 @@ const ApiRequestManager: React.FC = () => {
         } catch (err) {
             console.error('Failed to load requests:', err)
         }
-    }, [])
+    }, [getRequests])
 
     useEffect(() => {
         loadRequests()

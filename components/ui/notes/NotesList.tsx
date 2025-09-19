@@ -34,7 +34,7 @@ export const ConfirmationDialog = ({ show, onConfirm, onClose }: { show: boolean
   if (!show) return null
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm notes-modal flex items-center justify-center p-4 animate-modalFadeIn"
       onClick={onClose}
     >
@@ -105,7 +105,7 @@ const NotesList = () => {
       if (!selectedNote) setSelectedNote(notesData[0]) // Prevent undefined
       setIsCalendarEvent(notesData[0].isCalendarEvent)
     }
-  }, [notesData])
+  }, [notesData, selectedNote])
 
   console.log("isCalendarEvent", isCalendarEvent)
 
@@ -253,7 +253,7 @@ const NotesList = () => {
         {/* Header Section */}
         <div className="mb-6 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-400 to-teal-400 opacity-10 rounded-xl"></div>
-          <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-teal-50 rounded-xl p-6 relative shadow-lg border border-white" style={{zIndex: 1}}>
+          <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-teal-50 rounded-xl p-6 relative shadow-lg border border-white" style={{ zIndex: 1 }}>
             {/* Decorative elements */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full opacity-5 translate-x-1/3 -translate-y-1/3"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-400 rounded-full opacity-5 -translate-x-1/3 translate-y-1/3"></div>

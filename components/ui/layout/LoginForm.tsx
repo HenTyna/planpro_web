@@ -16,7 +16,7 @@ export default function LoginPage() {
     const [error, setError] = useState("")
     const [mounted, setMounted] = useState(false)
 
-    const [loginRequest, dispatch] = useReducer((state: any, action: any) : any => {
+    const [loginRequest, dispatch] = useReducer((state: any, action: any): any => {
         return { ...state, ...action }
     }, {
         user_name: '',
@@ -33,34 +33,47 @@ export default function LoginPage() {
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-    
+
         if (loginRequest.submitting) return;
         dispatch({ submitting: true });
         const toastId = toast.loading("Logging in...");
-    
+
         try {
             setIsLoading(true);
             setError("");
-    
+
             const result = await signIn("credentials", {
                 redirect: false,
                 user_name: loginRequest.user_name,
                 password: loginRequest.password,
                 callbackUrl: Path.TRIP,
             });
-    
+
+
             if (result?.ok) {
-                const success = result?.url;
                 toast.success("Logged in successfully");
-                router.push(success!);
+
+                // Wait a moment for session to be established
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Try multiple redirect methods to ensure it works
+                try {
+                    // Method 1: Try router.push first
+                    await router.push(Path.TRIP);
+                } catch (error) {
+                    // Method 2: Fallback to window.location
+                    setTimeout(() => {
+                        window.location.href = Path.TRIP;
+                    }, 100);
+                }
                 return;
             }
-    
+
             toast.error("Invalid username or password");
             setError('Invalid username or password');
         } catch (err) {
             console.error(err);
-            
+
             setError("An error occurred. Please try again.");
         } finally {
             toast.dismiss(toastId)
@@ -68,12 +81,12 @@ export default function LoginPage() {
             dispatch({ submitting: false });
         }
     }
-    
+
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
         const { name, value } = e.target;
         dispatch({ [name]: value, loginError: "", [`${name}Error`]: false });
     }
-    
+
     if (!mounted) return null
 
     return (

@@ -8,9 +8,11 @@ const Cards = ({ todo }: { todo: any }) => (
         <h2 className="font-semibold text-lg text-gray-800">{todo.title}</h2>
 
         {todo.image && (
-            <img
+            <Image
                 src={todo.image}
                 alt={todo.title}
+                width={400}
+                height={128}
                 className="rounded-lg w-full h-32 object-cover"
             />
         )}

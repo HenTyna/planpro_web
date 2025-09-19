@@ -57,9 +57,17 @@ const useFetchWeTalksWithQuery = () => {
   const myContacts = myContactsQuery.data || []
 
   // Memoize contacts and conversations to prevent exhaustive deps warnings
-  const memoizedContacts = useMemo(() => contacts, [contacts]) 
-  const memoizedMyContacts = useMemo(() => myContacts, [myContacts])
-  const memoizedConversations = useMemo(() => conversations, [conversations])
+  const memoizedContacts = useMemo(() => {
+    return contactsQuery.data || []
+  }, [contactsQuery.data]) 
+  
+  const memoizedMyContacts = useMemo(() => {
+    return myContactsQuery.data || []
+  }, [myContactsQuery.data])
+  
+  const memoizedConversations = useMemo(() => {
+    return conversationsQuery.data || []
+  }, [conversationsQuery.data])
 
   // Error handling
   const error = contactsQuery.error?.message || 

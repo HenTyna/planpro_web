@@ -6,35 +6,74 @@ import { authService } from "@/service/auth.service";
 import { AuthRequest } from "@/lib/types/auth";
 import { PasswordUtils } from "@/utils/PasswordUtils";
 
-export const jwt = async ({ token, user }: { token: JWT; user?: User }) => {
-    if (user) {
-        token.token = user.data.access_token
-        token.accessTokenExpires = user.data.expires_in
+async function refreshAccessToken(token: JWT) {
+    try {
+        // Since there's no refresh token endpoint, we'll extend the session
+        // by updating the expiration time to give users more time
+        const now = Date.now();
+        const timeUntilExpiry = token.accessTokenExpires - now;
+
+        // If token is close to expiry (less than 5 minutes), extend it
+        if (timeUntilExpiry < 5 * 60 * 1000) {
+            return {
+                ...token,
+                accessTokenExpires: now + (2 * 60 * 60 * 1000), // Extend by 2 hours
+            }
+        }
+
+        // If token is still valid, return as is
+        return token;
+    } catch (error) {
+        return {
+            ...token,
+            error: "RefreshAccessTokenError",
+        }
     }
-    return token;
+}
+
+export const jwt = async ({ token, user, account }: { token: JWT; user?: User; account?: any }) => {
+    // Initial sign in
+    if (user && account) {
+        token.token = user.data.access_token
+        token.accessTokenExpires = Date.now() + (user.data.expires_in * 1000)
+        token.refreshToken = undefined // No refresh token available in current API
+        return token
+    }
+
+    // Return previous token if the access token has not expired yet
+    if (Date.now() < token.accessTokenExpires) {
+        return token
+    }
+
+    // Access token has expired, try to update it
+    return await refreshAccessToken(token)
 };
 
 export const session = ({ session, token }: { session: Session; token: JWT }): Promise<Session> => {
-
-    if (Date.now() / 1000 > token?.accessTokenExpires) {
-        return Promise.reject({
-            error: new Error("Refresh token has expired. Please log in again to get a new refresh token."),
-        });
+    // Handle refresh token errors
+    if (token.error) {
+        session.error = token.error;
+        return Promise.resolve(session);
     }
+
+    // Validate token format
     const tokenPart = token.token?.split(".")?.at(1);
     if (!tokenPart) {
-        return Promise.reject({
-            error: new Error("Invalid token format."),
-        });
+        session.error = "Invalid token format.";
+        return Promise.resolve(session);
     }
-    const accessTokenData = JSON.parse(atob(tokenPart));
 
-    session.user = accessTokenData;
-    token.accessTokenExpires = accessTokenData.exp;
+    try {
+        const accessTokenData = JSON.parse(atob(tokenPart));
+        session.user = accessTokenData;
+        session.token = token.token;
+        session.accessTokenExpires = token.accessTokenExpires.toString();
 
-    session.token = token?.token;
-
-    return Promise.resolve(session);
+        return Promise.resolve(session);
+    } catch (error) {
+        session.error = "Invalid token data.";
+        return Promise.resolve(session);
+    }
 };
 
 
@@ -117,6 +156,7 @@ declare module "next-auth/jwt" {
         exp?: number;
         iat?: number;
         jti?: string;
+        error?: string;
     }
 }
 

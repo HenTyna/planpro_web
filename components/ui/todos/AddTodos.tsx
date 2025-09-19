@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 // Define a Task type for the onSubmit prop
 interface Task {
@@ -304,9 +305,11 @@ const AddTodos: React.FC<AddTodosProps> = ({ isOpen, onClose, onSubmit, initialS
                                 {/* Image Preview */}
                                 {imagePreview && (
                                     <div className="mt-3">
-                                        <img
+                                        <Image
                                             src={imagePreview}
                                             alt="Preview"
+                                            width={400}
+                                            height={128}
                                             className="w-full h-32 object-cover rounded-lg border border-gray-200"
                                             onError={handleImageError}
                                         />

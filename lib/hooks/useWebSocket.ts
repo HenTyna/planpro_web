@@ -98,10 +98,10 @@ export const useWebSocket = (conversationId?: number) => {
           setTypingUsers([])
           // mark as no longer needed until next action
           setConnectionRequested(false)
-        } catch {}
+        } catch { }
       }
     }, IDLE_TIMEOUT)
-  }, [])
+  }, [IDLE_TIMEOUT])
 
   const stopIdleTimeout = useCallback(() => {
     if (idleTimeoutRef.current) {
@@ -148,7 +148,7 @@ export const useWebSocket = (conversationId?: number) => {
       setConnectionError('Failed to initialize WebSocket client')
       return null
     }
-  }, [currentUserId, currentEndpointIndex])
+  }, [currentUserId, getCurrentEndpoint])
 
   const handleChatEvent = useCallback((event: ChatEvent) => {
     updateActivity()
@@ -279,7 +279,7 @@ export const useWebSocket = (conversationId?: number) => {
           const c = stompClientRef.current
           if (currentUserId && !userQueueSubRef.current && c) {
             userQueueSubRef.current = c.subscribe(WEBSOCKET_CONFIG.STOMP.DESTINATIONS.USER_QUEUE(currentUserId), (message) => {
-              try { const event: ChatEvent = JSON.parse(message.body); handleChatEvent(event) } catch {}
+              try { const event: ChatEvent = JSON.parse(message.body); handleChatEvent(event) } catch { }
             })
           }
 
@@ -287,7 +287,7 @@ export const useWebSocket = (conversationId?: number) => {
           if (c && conversationId && !conversationSubRef.current) {
             conversationSubRef.current = c.subscribe(
               WEBSOCKET_CONFIG.STOMP.DESTINATIONS.CONVERSATION_TOPIC(conversationId),
-              (message) => { try { const event: ChatEvent = JSON.parse(message.body); handleChatEvent(event) } catch {} }
+              (message) => { try { const event: ChatEvent = JSON.parse(message.body); handleChatEvent(event) } catch { } }
             )
             c.publish({ destination: WEBSOCKET_CONFIG.STOMP.DESTINATIONS.JOIN_CONVERSATION, body: conversationId.toString() })
           }
@@ -317,15 +317,15 @@ export const useWebSocket = (conversationId?: number) => {
     return () => {
       if (connectionTimeout) { clearTimeout(connectionTimeout) }
       if (client) {
-        try { client.deactivate() } catch {}
+        try { client.deactivate() } catch { }
         stompClientRef.current = null
         setIsConnected(false)
         setTypingUsers([])
         setConnectionError(null)
         stopConnectionHealthCheck()
         stopIdleTimeout()
-        if (userQueueSubRef.current) { try { userQueueSubRef.current.unsubscribe() } catch {}; userQueueSubRef.current = null }
-        if (conversationSubRef.current) { try { conversationSubRef.current.unsubscribe() } catch {}; conversationSubRef.current = null }
+        if (userQueueSubRef.current) { try { userQueueSubRef.current.unsubscribe() } catch { }; userQueueSubRef.current = null }
+        if (conversationSubRef.current) { try { conversationSubRef.current.unsubscribe() } catch { }; conversationSubRef.current = null }
       }
     }
   }, [session?.user, conversationId, connectionRequested, isConnected, currentUserId, initializeStompClient, retryConnection, startConnectionHealthCheck, stopConnectionHealthCheck, startIdleTimeout, stopIdleTimeout, handleChatEvent])
@@ -336,18 +336,18 @@ export const useWebSocket = (conversationId?: number) => {
     stopIdleTimeout()
     if (!stompClientRef.current || !isConnected) return
 
-    if (conversationSubRef.current) { try { conversationSubRef.current.unsubscribe() } catch {}; conversationSubRef.current = null }
+    if (conversationSubRef.current) { try { conversationSubRef.current.unsubscribe() } catch { }; conversationSubRef.current = null }
     if (!conversationId) return
 
     conversationSubRef.current = stompClientRef.current.subscribe(
       WEBSOCKET_CONFIG.STOMP.DESTINATIONS.CONVERSATION_TOPIC(conversationId),
-      (message) => { try { const event: ChatEvent = JSON.parse(message.body); handleChatEvent(event) } catch {} }
+      (message) => { try { const event: ChatEvent = JSON.parse(message.body); handleChatEvent(event) } catch { } }
     )
     stompClientRef.current.publish({ destination: WEBSOCKET_CONFIG.STOMP.DESTINATIONS.JOIN_CONVERSATION, body: conversationId.toString() })
     startIdleTimeout()
 
     return () => {
-      if (conversationSubRef.current) { try { conversationSubRef.current.unsubscribe() } catch {}; conversationSubRef.current = null }
+      if (conversationSubRef.current) { try { conversationSubRef.current.unsubscribe() } catch { }; conversationSubRef.current = null }
       if (stompClientRef.current && conversationId) {
         stompClientRef.current.publish({ destination: WEBSOCKET_CONFIG.STOMP.DESTINATIONS.LEAVE_CONVERSATION, body: conversationId.toString() })
       }

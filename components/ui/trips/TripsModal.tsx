@@ -3,6 +3,7 @@ import type React from "react"
 import { Button } from "@/components/shared/ui/Button"
 import { Input } from "@/components/shared/ui/Input"
 import { Calendar, Globe, Info, MapPin, Plane, Plus, Trash2, Users, Wallet } from "lucide-react"
+import Image from "next/image"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -421,9 +422,11 @@ const TripModal = ({ trip, onClose, onSave, isNew = false }: TripModalProps) => 
                                 <div className="space-y-1 text-center">
                                     {watchedImageUrl ? (
                                         <div className="relative w-full h-48">
-                                            <img
+                                            <Image
                                                 src={watchedImageUrl || "/placeholder.svg"}
                                                 alt="Trip preview"
+                                                width={400}
+                                                height={192}
                                                 className="mx-auto object-cover rounded-lg h-full w-full"
                                             />
                                         </div>
